@@ -12,6 +12,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{87AFA633-EBC9-4A0C-AE07-C6616BAFB602}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Honeycomb.Serilog.Sink.Tests", "test\Honeycomb.Serilog.Sink.Tests\Honeycomb.Serilog.Sink.Tests.csproj", "{3153A916-94B4-418D-84BD-EB1649449CFF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -22,12 +26,17 @@ Global
 		{053B3440-863F-4330-9FD1-56BC473A6C00}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{053B3440-863F-4330-9FD1-56BC473A6C00}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{053B3440-863F-4330-9FD1-56BC473A6C00}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3153A916-94B4-418D-84BD-EB1649449CFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3153A916-94B4-418D-84BD-EB1649449CFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3153A916-94B4-418D-84BD-EB1649449CFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3153A916-94B4-418D-84BD-EB1649449CFF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{053B3440-863F-4330-9FD1-56BC473A6C00} = {F5B2D9C6-6E1E-482F-A216-143C5DB44239}
+		{3153A916-94B4-418D-84BD-EB1649449CFF} = {87AFA633-EBC9-4A0C-AE07-C6616BAFB602}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6D3B3C14-041E-4E42-99C4-0D3A19EAB1BA}
