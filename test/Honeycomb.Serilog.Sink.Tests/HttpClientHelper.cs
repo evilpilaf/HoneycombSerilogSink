@@ -7,11 +7,9 @@ namespace Honeycomb.Serilog.Sink.Tests
 {
     internal sealed class HttpClientHelper
     {
-        private readonly DummyHttpMessageHandler _messageHandler;
-
         public HttpClient GetHttpClient()
         {
-            return new HttpClient(_messageHandler);
+            return new HttpClient(new DummyHttpMessageHandler());
         }
     }
 
