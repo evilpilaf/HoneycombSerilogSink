@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Net;
+﻿using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,18 +7,18 @@ namespace Honeycomb.Serilog.Sink.Tests.Helpers
 {
     public sealed class HttpMessageHandlerStub : HttpMessageHandler
     {
-        public Dictionary<string, HttpResponseMessage> EndpointResponses = new Dictionary<string, HttpResponseMessage>();
+        private HttpStatusCode _statusCodeToReturn = HttpStatusCode.NotImplemented;
+        public HttpRequestMessage RequestMessage { get; private set; }
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            var isResponseSetup = EndpointResponses.TryGetValue(request.RequestUri.LocalPath, out var responseMessage);
+            RequestMessage = request;
+            return Task.FromResult(new HttpResponseMessage(_statusCodeToReturn));
+        }
 
-            if (isResponseSetup)
-            {
-                return Task.FromResult(responseMessage);
-            }
-
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotImplemented));
+        public void ReturnsStatusCode(HttpStatusCode statusCode)
+        {
+            _statusCodeToReturn = statusCode;
         }
     }
 }
