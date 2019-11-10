@@ -37,7 +37,7 @@ namespace Honeycomb.Serilog.Sink
                 {
                     Content = new StringContent(formattedLogEventText)
                 };
-                message.Headers.Add("'X-Honeycomb-Team", _apiKey);
+                message.Headers.Add("X-Honeycomb-Team", _apiKey);
                 Client.SendAsync(message).ConfigureAwait(false);
             }
         }
