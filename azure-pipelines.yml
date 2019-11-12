@@ -22,15 +22,15 @@ steps:
 - task: DotNetCoreCLI@2
   inputs:
     command: 'restore'
-    projects: '.\HoneycombSerilogSink.sln'
+    projects: 'HoneycombSerilogSink.sln'
 
 - task: DotNetCoreCLI@2
   inputs:
     command: 'build'
-    projects: '.\HoneycombSerilogSink.sln'
+    projects: 'HoneycombSerilogSink.sln'
     arguments: '-c Release'
 - task: DotNetCoreCLI@2
   inputs:
     command: 'test'
-    projects: '.\HoneycombSerilogSink.sln'
+    projects: 'HoneycombSerilogSink.sln'
     arguments: '--no-restore --no-build -c Release'
