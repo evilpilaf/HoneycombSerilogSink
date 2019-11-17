@@ -19,17 +19,27 @@ pool:
   vmImage: $(imageName)
 
 steps:
+- task: UseDotNet@2
+  displayName: 'Use dotnet core 3.1'
+  inputs:
+    version: 3.1
+    packageType: sdk    
+    includePreviewVersions: true
 - task: DotNetCoreCLI@2
+  displayName: 'Restore packages'
   inputs:
     command: 'restore'
     projects: 'HoneycombSerilogSink.sln'
 
 - task: DotNetCoreCLI@2
+  displayName: 'Build'
   inputs:
     command: 'build'
     projects: 'HoneycombSerilogSink.sln'
     arguments: '-c Release'
+
 - task: DotNetCoreCLI@2
+  displayName: 'Test'
   inputs:
     command: 'test'
     projects: 'HoneycombSerilogSink.sln'
