@@ -8,29 +8,56 @@ trigger:
 
 strategy:
   matrix:
-    # linux:
-    #   imageName: "ubuntu-16.04"
+    linux:
+      imageName: "ubuntu-16.04"
+      matrix:
+        netcoreapp21:
+          testFramework: netcoreapp2.1
+        netcoreapp30:
+          testFramework: netcoreapp3.0
+        netcoreapp31:
+          testFramework: netcoreapp3.1
     # mac:
     #   imageName: "macos-10.13"
     windows:
       imageName: "windows-2019"
+      matrix:
+        net461:
+          testFramework: net461
+        net462:
+          testFramework: net462
+        net47:
+          testFramework: net47
+        net471:
+          testFramework: net471
+        net472:
+          testFramework: net472
+        net48:
+          testFramework: net48
+        netcoreapp21:
+          testFramework: netcoreapp2.1
+        netcoreapp30:
+          testFramework: netcoreapp3.0
+        netcoreapp31:
+          testFramework: netcoreapp3.1
 
 pool:
   vmImage: $(imageName)
 
 steps:
   - task: UseDotNet@2
-    displayName: "Use dotnet core 3.1"
-    inputs:
-      version: 3.1.x
-      packageType: sdk
-      includePreviewVersions: true
-  - task: UseDotNet@2
     displayName: "Add dotnet core 2.1"
     inputs:
       version: 2.1.x
       packageType: sdk
       includePreviewVersions: false
+
+  - task: UseDotNet@2
+    displayName: "Use dotnet core 3.1"
+    inputs:
+      version: 3.1.x
+      packageType: sdk
+      includePreviewVersions: true
 
   - task: DotNetCoreCLI@2
     displayName: "Restore packages"
@@ -43,11 +70,11 @@ steps:
     inputs:
       command: "build"
       projects: "HoneycombSerilogSink.sln"
-      arguments: "-c Release"
+      arguments: '-c Release'
 
   - task: DotNetCoreCLI@2
-    displayName: "Test"
+    displayName: 'Test'
     inputs:
-      command: "test"
-      projects: "HoneycombSerilogSink.sln"
-      arguments: "--no-restore --no-build -c Release"
+      command: 'test'
+      projects: 'HoneycombSerilogSink.sln'
+      arguments: '--no-restore --no-build -c Release -f $(testFramework) --collect "Code coverage"'
