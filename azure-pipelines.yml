@@ -4,43 +4,50 @@
 # https://aka.ms/yaml
 
 trigger:
-- master
+  - master
 
 strategy:
   matrix:
-    linux:
-      imageName: 'ubuntu-16.04'
-    mac:
-      imageName: 'macos-10.13'
+    # linux:
+    #   imageName: "ubuntu-16.04"
+    # mac:
+    #   imageName: "macos-10.13"
     windows:
-      imageName: 'windows-2019'
+      imageName: "windows-2019"
 
 pool:
   vmImage: $(imageName)
 
 steps:
-- task: UseDotNet@2
-  displayName: 'Use dotnet core 3.1'
-  inputs:
-    version: 3.1.x
-    packageType: sdk    
-    includePreviewVersions: true
-- task: DotNetCoreCLI@2
-  displayName: 'Restore packages'
-  inputs:
-    command: 'restore'
-    projects: 'HoneycombSerilogSink.sln'
+  - task: UseDotNet@2
+    displayName: "Use dotnet core 3.1"
+    inputs:
+      version: 3.1.x
+      packageType: sdk
+      includePreviewVersions: true
+  - task: UseDotNet@2
+    displayName: "Add dotnet core 2.1"
+    inputs:
+      version: 2.1.x
+      packageType: sdk
+      includePreviewVersions: false
 
-- task: DotNetCoreCLI@2
-  displayName: 'Build'
-  inputs:
-    command: 'build'
-    projects: 'HoneycombSerilogSink.sln'
-    arguments: '-c Release'
+  - task: DotNetCoreCLI@2
+    displayName: "Restore packages"
+    inputs:
+      command: "restore"
+      projects: "HoneycombSerilogSink.sln"
 
-- task: DotNetCoreCLI@2
-  displayName: 'Test'
-  inputs:
-    command: 'test'
-    projects: 'HoneycombSerilogSink.sln'
-    arguments: '--no-restore --no-build -c Release'
+  - task: DotNetCoreCLI@2
+    displayName: "Build"
+    inputs:
+      command: "build"
+      projects: "HoneycombSerilogSink.sln"
+      arguments: "-c Release"
+
+  - task: DotNetCoreCLI@2
+    displayName: "Test"
+    inputs:
+      command: "test"
+      projects: "HoneycombSerilogSink.sln"
+      arguments: "--no-restore --no-build -c Release"
