@@ -47,4 +47,4 @@ steps:
     inputs:
       command: 'test'
       projects: 'HoneycombSerilogSink.sln'
-      arguments: '--no-restore --no-build -c Release -r ".\testResults" --collect "Code coverage"'
+      arguments: '--no-restore --no-build -c Release --collect "Code coverage"'
