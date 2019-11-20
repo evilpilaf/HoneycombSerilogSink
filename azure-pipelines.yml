@@ -4,42 +4,12 @@
 # https://aka.ms/yaml
 
 trigger:
-  - master
+  - pr
 
 strategy:
   matrix:
-    linux:
-      imageName: "ubuntu-16.04"
-      matrix:
-        netcoreapp21:
-          testFramework: netcoreapp2.1
-        netcoreapp30:
-          testFramework: netcoreapp3.0
-        netcoreapp31:
-          testFramework: netcoreapp3.1
-    # mac:
-    #   imageName: "macos-10.13"
     windows:
       imageName: "windows-2019"
-      matrix:
-        net461:
-          testFramework: net461
-        net462:
-          testFramework: net462
-        net47:
-          testFramework: net47
-        net471:
-          testFramework: net471
-        net472:
-          testFramework: net472
-        net48:
-          testFramework: net48
-        netcoreapp21:
-          testFramework: netcoreapp2.1
-        netcoreapp30:
-          testFramework: netcoreapp3.0
-        netcoreapp31:
-          testFramework: netcoreapp3.1
 
 pool:
   vmImage: $(imageName)
