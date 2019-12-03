@@ -7,6 +7,7 @@ using Serilog.Core;
 using Serilog.Events;
 using Serilog.Formatting;
 using Serilog.Formatting.Compact;
+using Serilog.Formatting.Json;
 
 namespace Honeycomb.Serilog.Sink
 {
@@ -24,7 +25,7 @@ namespace Honeycomb.Serilog.Sink
         {
             _teamId = string.IsNullOrWhiteSpace(teamId) ? throw new ArgumentNullException(nameof(teamId)) : teamId;
             _apiKey = string.IsNullOrWhiteSpace(apiKey) ? throw new ArgumentNullException(nameof(apiKey)) : apiKey;
-            _formatter = new CompactJsonFormatter();
+            _formatter = new JsonFormatter();
         }
 
         public void Emit(LogEvent logEvent)
