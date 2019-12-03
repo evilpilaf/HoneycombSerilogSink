@@ -9,11 +9,13 @@ namespace Honeycomb.Serilog.Sink.Tests.Helpers
     {
         private HttpStatusCode _statusCodeToReturn = HttpStatusCode.NotImplemented;
         public HttpRequestMessage RequestMessage { get; private set; }
+        public string RequestContent { get; private set; }
 
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             RequestMessage = request;
-            return Task.FromResult(new HttpResponseMessage(_statusCodeToReturn));
+            RequestContent = await request.Content.ReadAsStringAsync();
+            return new HttpResponseMessage(_statusCodeToReturn);
         }
 
         public void ReturnsStatusCode(HttpStatusCode statusCode)
