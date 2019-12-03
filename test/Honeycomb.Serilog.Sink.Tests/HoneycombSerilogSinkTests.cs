@@ -52,6 +52,24 @@ namespace Honeycomb.Serilog.Sink.Tests
             clientStub.RequestSubmitted.Headers.GetValues("X-Honeycomb-Team").Should().ContainSingle().Which.Should().Be(apiKey);
         }
 
+        [Fact]
+        public void Emit_CallsEndpointUsingTeamId()
+        {
+            const string teamId = nameof(teamId);
+            const string apiKey = nameof(apiKey);
+
+            HttpClientStub clientStub = A.HttpClient();
+
+            var sut = CreateSut(teamId, apiKey, clientStub);
+
+            sut.Emit(new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate("", Enumerable.Empty<MessageTemplateToken>()), Enumerable.Empty<LogEventProperty>()));
+
+            clientStub.RequestSubmitted.RequestUri.ToString().Should().EndWith(teamId);
+
+            clientStub.RequestSubmitted.Headers.Should().ContainSingle(h => h.Key == "X-Honeycomb-Team");
+            clientStub.RequestSubmitted.Headers.GetValues("X-Honeycomb-Team").Should().ContainSingle().Which.Should().Be(apiKey);
+        }
+
         private HoneycombSerilogSink CreateSut(string teamId, string apiKey, HttpClient client = null)
         {
             return new HoneycombSerilogSinkStub(client, teamId, apiKey);
