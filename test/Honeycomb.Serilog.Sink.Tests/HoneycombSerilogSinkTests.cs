@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Linq;
 using System.Net.Http;
-using System.Threading.Tasks;
+using System.Text.Json;
+
 using FluentAssertions;
+using FluentAssertions.Execution;
+
 using Honeycomb.Serilog.Sink.Tests.Builders;
+
 using Serilog.Events;
 using Serilog.Parsing;
+
 using Xunit;
 
 namespace Honeycomb.Serilog.Sink.Tests
@@ -65,9 +70,35 @@ namespace Honeycomb.Serilog.Sink.Tests
             sut.Emit(new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate("", Enumerable.Empty<MessageTemplateToken>()), Enumerable.Empty<LogEventProperty>()));
 
             clientStub.RequestSubmitted.RequestUri.ToString().Should().EndWith(teamId);
+        }
 
-            clientStub.RequestSubmitted.Headers.Should().ContainSingle(h => h.Key == "X-Honeycomb-Team");
-            clientStub.RequestSubmitted.Headers.GetValues("X-Honeycomb-Team").Should().ContainSingle().Which.Should().Be(apiKey);
+        [Fact]
+        public void Emit_SerializesLogMessageAsJson_ExcludesRenderedMessageAsync()
+        {
+            const string teamId = nameof(teamId);
+            const string apiKey = nameof(apiKey);
+
+            HttpClientStub clientStub = A.HttpClient();
+
+            var sut = CreateSut(teamId, apiKey, clientStub);
+
+            var level = LogEventLevel.Fatal;
+            var eventTime = DateTimeOffset.Now;
+
+            var messageTemplateParser = new MessageTemplateParser();
+            var messageTempalteString = "Testing message {message}";
+            var messageTemplate = messageTemplateParser.Parse(messageTempalteString);
+
+            sut.Emit(new LogEvent(eventTime, level, null, messageTemplate, new[] { new LogEventProperty("message", new ScalarValue("hello")) }));
+
+            var requestContent = clientStub.RequestContent;
+            using (new AssertionScope())
+            using (JsonDocument document = JsonDocument.Parse(requestContent))
+            {
+                document.RootElement.GetProperty("Level").GetString().Should().Be(level.ToString());
+                document.RootElement.GetProperty("Timestamp").GetDateTimeOffset().Should().Be(eventTime);
+                document.RootElement.GetProperty("MessageTemplate").GetString().Should().Be(messageTempalteString);
+            }
         }
 
         private HoneycombSerilogSink CreateSut(string teamId, string apiKey, HttpClient client = null)
