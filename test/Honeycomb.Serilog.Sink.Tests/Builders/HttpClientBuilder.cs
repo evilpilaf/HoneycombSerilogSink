@@ -29,6 +29,7 @@ namespace Honeycomb.Serilog.Sink.Tests.Builders
         private readonly HttpMessageHandlerStub _handlerStub;
 
         public HttpRequestMessage RequestSubmitted => _handlerStub.RequestMessage;
+        public string RequestContent => _handlerStub.RequestContent;
 
         public HttpClientStub(HttpMessageHandlerStub httpMessageHandler)
             : base(httpMessageHandler)

@@ -26,5 +26,9 @@
   <ItemGroup Condition=" '$(TargetFramework)' == 'net461' OR '$(TargetFramework)' == 'net462' OR '$(TargetFramework)' == 'net47' OR'$(TargetFramework)' == 'net471' OR '$(TargetFramework)' == 'net472' OR '$(TargetFramework)' == 'net48' ">
     <Reference Include="System.Net.Http" />
   </ItemGroup>
+  
+  <ItemGroup Condition=" '$(TargetFramework)' != 'netcoreapp3.1' ">
+    <PackageReference Include="System.Text.Json" Version="4.7.0" />
+  </ItemGroup>
 
 </Project>
