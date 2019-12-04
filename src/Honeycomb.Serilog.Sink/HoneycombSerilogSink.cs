@@ -33,28 +33,37 @@ namespace Honeycomb.Serilog.Sink
                 var evnt = BuildLogEvent(logEvent);
                 var message = new HttpRequestMessage(HttpMethod.Post, $"/{_teamId}")
                 {
-                    Content = new StringContent(evnt.ToString())
+                    Content = new StringContent(evnt)
                 };
                 message.Headers.Add("X-Honeycomb-Team", _apiKey);
-                Client.SendAsync(message).ConfigureAwait(false);
+                Client.SendAsync(message).ConfigureAwait(false).GetAwaiter().GetResult();
             }
         }
 
-        private static StringBuilder BuildLogEvent(LogEvent logEvent)
+        private static string BuildLogEvent(LogEvent logEvent)
         {
-            var evnt = new StringBuilder();
-            evnt.Append("{");
-            evnt.Append($"\"timestamp\": \"{logEvent.Timestamp:O}\",");
-            evnt.Append($"\"level\": \"{logEvent.Level}\",");
-            evnt.Append($"\"messageTemplate\": \"{logEvent.MessageTemplate}\",");
-            var propertyList = new List<string>(logEvent.Properties.Count());
+            var evnt = new StringBuilder("{");
+
+            var propertyList = new List<string>(logEvent.Properties.Count() + 4)
+            {
+                $"\"timestamp\": \"{logEvent.Timestamp:O}\"",
+                $"\"level\": \"{logEvent.Level}\"",
+                $"\"messageTemplate\": \"{logEvent.MessageTemplate}\""
+            };
+
+            if (logEvent.Exception != null)
+            {
+                propertyList.Add($"\"exception\": \"{logEvent.Exception.ToString()}\"");
+            }
+
             foreach (var prop in logEvent.Properties)
             {
                 propertyList.Add($"\"{prop.Key}\": {prop.Value.ToString()}");
             }
+
             evnt.Append(string.Join(",", propertyList));
             evnt.Append("}");
-            return evnt;
+            return evnt.ToString();
         }
 
         private static HttpClient BuildHttpClient()
