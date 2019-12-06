@@ -4,7 +4,16 @@
 # https://aka.ms/yaml
 
 trigger:
-  - pr
+  branches:
+    include:
+    - master
+  paths:
+    exclude:
+    - .editorconfig
+    - .gitattributes
+    - .gitignore
+    - LICENSE.TXT
+    - README.md
 
 strategy:
   matrix:
