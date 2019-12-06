@@ -4,7 +4,16 @@
 # https://aka.ms/yaml
 
 trigger:
-  - pr
+  branches:
+    include:
+    - master
+  paths:
+    exclude:
+    - .editorconfig
+    - .gitattributes
+    - .gitignore
+    - LICENSE.TXT
+    - README.md
 
 strategy:
   matrix:
@@ -48,3 +57,18 @@ steps:
       command: 'test'
       projects: 'HoneycombSerilogSink.sln'
       arguments: '--no-restore --no-build -c Release --collect "Code coverage"'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Package'
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    inputs:
+      command: 'pack'
+      arguments: '--output $(Build.ArtifactStagingDirectory) --configuration $(buildConfiguration) --no-build'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish built artifacts'
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: 'drop'
+      publishLocation: 'Container'
