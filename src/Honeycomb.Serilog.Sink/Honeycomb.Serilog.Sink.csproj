@@ -2,15 +2,30 @@
 
   <PropertyGroup>
     <TargetFrameworks>net461;netstandard2.0;netstandard2.1</TargetFrameworks>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Title>Honeycomb Serilog sink</Title>
+    <Authors>evilpilaf</Authors>
+    <PackageTags>Honeycomb;Serilog;Sink;Observability;Logging;Monitoring</PackageTags>
+    <RepositoryUrl>https://github.com/evilpilaf/HoneycombSerilogSink/</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MinVer" Version="2.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Serilog" Version="2.9.0" />
-    <PackageReference Include="Serilog.Formatting.Compact" Version="1.1.0" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net461' OR '$(TargetFramework)' == 'net462' OR '$(TargetFramework)' == 'net47'  OR '$(TargetFramework)' == 'net471' OR '$(TargetFramework)' == 'net472' OR '$(TargetFramework)' == 'net48' ">
     <Reference Include="System.Net.Http" />
   </ItemGroup>
+
+  <Target Name="Add-BuildID" AfterTargets="MinVer">
+    <PropertyGroup>
+      <BuildID Condition="'$(BuildID)' == ''">0</BuildID>
+      <FileVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(BuildID)</FileVersion>
+    </PropertyGroup>
+  </Target>
 
 </Project>
