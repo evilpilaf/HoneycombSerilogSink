@@ -22,10 +22,10 @@
   </ItemGroup>
 
   <Target Name="Add-BuildID" AfterTargets="MinVer">
-  <PropertyGroup>
-    <BuildID Condition="'$(BuildID)' == ''">0</BuildID>
-    <FileVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(BuildID)</FileVersion>
-  </PropertyGroup>
-</Target>
+    <PropertyGroup>
+      <BuildID Condition="'$(BuildID)' == ''">0</BuildID>
+      <FileVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(BuildID)</FileVersion>
+    </PropertyGroup>
+  </Target>
 
 </Project>
