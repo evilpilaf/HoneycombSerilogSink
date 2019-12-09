@@ -1,0 +1,37 @@
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+  tags:
+    include:
+    - "*"
+
+pool:
+  vmImage: 'windows-latest'
+
+steps:
+- template: azure-pipelines.yml
+- task: NuGetAuthenticate@0
+  inputs:
+    nuGetServiceConnections: 'HoneycombSinkNugetFeed'
+- task: NuGetCommand@2
+  displayName: 'Push package to nuget'
+  inputs:
+    command: push
+    nuGetFeedType: external
+    publishFeedCredentials: HoneycombSinkNugetFeed
+
+- pwsh: |
+    [string]$latestTag=iex 'git describe --tags --abbrev=0'
+    ##vso[task.setvariable variable=releaseTag]$latestTag
+    Write-Output LatestTag=$latestTag target=$(Build.SourceVersion) repositoryName=$(Build.Repository.Name)
+- task: GitHubRelease@1
+  inputs:
+    gitHubConnection: evilpilaf
+    repositoryName: '$(Build.Repository.Name)'
+    action: 'edit'
+    target: '$(Build.SourceVersion)'
+    releaseNotesSource: 'inline'
+    changeLogCompareToRelease: 'lastFullRelease'
+    changeLogType: 'commitBased'
+    tag: $(latestTag)
