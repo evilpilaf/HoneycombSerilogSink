@@ -10,10 +10,12 @@ pool:
   vmImage: 'windows-latest'
 
 steps:
-- template: azure-pipelines.yml
+- template: ci/templates/build-and-package.yml
+
 - task: NuGetAuthenticate@0
   inputs:
     nuGetServiceConnections: 'HoneycombSinkNugetFeed'
+
 - task: NuGetCommand@2
   displayName: 'Push package to nuget'
   inputs:
@@ -21,10 +23,6 @@ steps:
     nuGetFeedType: external
     publishFeedCredentials: HoneycombSinkNugetFeed
 
-- pwsh: |
-    [string]$latestTag=iex 'git describe --tags --abbrev=0'
-    ##vso[task.setvariable variable=releaseTag]$latestTag
-    Write-Output LatestTag=$latestTag target=$(Build.SourceVersion) repositoryName=$(Build.Repository.Name)
 - task: GitHubRelease@1
   inputs:
     gitHubConnection: evilpilaf
