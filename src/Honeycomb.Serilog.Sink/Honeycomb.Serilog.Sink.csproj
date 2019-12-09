@@ -5,7 +5,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Title>Honeycomb Serilog sink</Title>
     <Authors>evilpilaf</Authors>
-    <PackageTags>Honeycomb;Serilog;Sink;Observability;Logging;Monitoring</PackageTags>
+    <PackageTags>Honeycomb Serilog Sink Observability Logging Monitoring</PackageTags>
     <RepositoryUrl>https://github.com/evilpilaf/HoneycombSerilogSink/</RepositoryUrl>
   </PropertyGroup>
 
@@ -21,10 +21,19 @@
     <Reference Include="System.Net.Http" />
   </ItemGroup>
 
-  <Target Name="Add-BuildID" AfterTargets="MinVer">
+  <Target Name="ComputePackageVersion" AfterTargets="MinVer" Condition=" '$(BUILD_PR)' != '' AND '$(BUILD_PR)' != '%24(SYSTEM.PULLREQUEST.PULLREQUESTNUMBER)' ">
     <PropertyGroup>
-      <BuildID Condition="'$(BuildID)' == ''">0</BuildID>
-      <FileVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(BuildID)</FileVersion>
+      <PackageVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch)-pr.$(BUILD_PR)</PackageVersion>
+      <PackageVersion Condition="'$(MinVerPreRelease)' != ''">$(PackageVersion).$(MinVerPreRelease)</PackageVersion>
+      <PackageVersion Condition="'$(MinVerBuildMetadata)' != ''">$(PackageVersion)+$(MinVerBuildMetadata)</PackageVersion>
+      <Version>$(PackageVersion)</Version>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="ComputeFileVersion" AfterTargets="MinVer">
+    <PropertyGroup>
+      <BUILD_ID Condition="'$(BUILD_ID)' == ''">0</BUILD_ID>
+      <FileVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(BUILD_ID)</FileVersion>
     </PropertyGroup>
   </Target>
 
