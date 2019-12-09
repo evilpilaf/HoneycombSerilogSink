@@ -27,7 +27,7 @@ jobs:
     buildConfiguration: Release
 
   steps:
-    - powershell: |
+    - pwsh: |
         [string]$latestTag=iex 'git describe --tags --abbrev=0'
         [string]$version="v$latestTag.$(BUILD.BUILDNUMBER)"
         Write-Output "##vso[build.updatebuildnumber]$version"
