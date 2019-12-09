@@ -28,6 +28,10 @@ jobs:
 
   steps:
     - pwsh: |
+        Write-Output 'BUILD_PR=$(SYSTEM.PULLREQUEST.PULLREQUESTNUMBER) BUILD_ID=$(BUILD.BUILDNUMBER)'
+      displayName: "Echo the build variables"
+
+    - pwsh: |
         [string]$latestTag=iex 'git describe --tags --abbrev=0'
         [string]$version="v$latestTag.$(BUILD.BUILDNUMBER)"
         Write-Output "##vso[build.updatebuildnumber]$version"
