@@ -7,7 +7,7 @@ steps:
     [string]$latestTag=iex 'git describe --tags --abbrev=0'
     [string]$version="v$latestTag.$(BUILD.BUILDNUMBER)"
     Write-Output "##vso[task.setvariable variable=releaseTag]$latestTag"
-    Write-Output "##vso[build.updatebuildnumber]$version"
+    Write-Output "##vso[task.setvariable variable=version]$version"
   displayName: "Set buld task name"
 
 - task: UseDotNet@2

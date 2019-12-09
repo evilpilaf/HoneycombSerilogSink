@@ -2,6 +2,7 @@
 # Start with a minimal pipeline that you can customize to build and deploy your code.
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
+name: $(Rev:r)
 
 trigger:
   branches:
@@ -26,3 +27,6 @@ jobs:
 
   steps:
     - template: ci/templates/build-and-package.yml
+
+    - pwsh: |
+        Write-Host "##vso[build.updatebuildnumber]$(version)"
