@@ -4,6 +4,9 @@
 # https://aka.ms/yaml
 
 trigger:
+  branches:
+    include:
+      - master
   paths:
     exclude:
     - .editorconfig
@@ -20,7 +23,16 @@ jobs:
   pool:
     vmImage: 'windows-2019'
 
+  variables:
+    buildConfiguration: Release
+
   steps:
+    - powershell: |
+        [string]$latestTag=iex 'git describe --tags --abbrev=0'
+        [string]$version="v$latestTag.$(BUILD.BUILDNUMBER)"
+        Write-Output "##vso[build.updatebuildnumber]$version"
+      displayName: "Get latest git tag"
+
     - task: UseDotNet@2
       displayName: "Add dotnet core 2.1"
       inputs:
@@ -49,32 +61,30 @@ jobs:
       inputs:
         command: "build"
         projects: "HoneycombSerilogSink.sln"
-        arguments: '-c Release'
+        arguments: '-c $(buildConfiguration)'
 
     - task: DotNetCoreCLI@2
       displayName: 'Test'
       inputs:
         command: 'test'
         projects: 'HoneycombSerilogSink.sln'
-        arguments: '--no-restore --no-build -c Release --collect "Code coverage"'
+        arguments: '--no-restore --no-build -c $(buildConfiguration) --collect "Code coverage"'
 
     - task: DotNetCoreCLI@2
       displayName: 'Package'
-      condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
       env:
         BUILD_PR: $(SYSTEM.PULLREQUEST.PULLREQUESTNUMBER)
         BUILD_ID: $(BUILD.BUILDNUMBER)
       inputs:
         command: 'pack'
-        arguments: '--output $(Build.ArtifactStagingDirectory) --configuration $(buildConfiguration) --no-build'
+        arguments: '.\src\Honeycomb.Serilog.Sink\Honeycomb.Serilog.Sink.csproj --output $(Build.ArtifactStagingDirectory) --configuration $(buildConfiguration) --no-build'
 
     - task: PublishBuildArtifacts@1
       displayName: 'Publish built artifacts'
-      condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
       env:
         BUILD_PR: $(SYSTEM.PULLREQUEST.PULLREQUESTNUMBER)
         BUILD_ID: $(BUILD.BUILDNUMBER)
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'drop'
+        ArtifactName: 'nuget'
         publishLocation: 'Container'
