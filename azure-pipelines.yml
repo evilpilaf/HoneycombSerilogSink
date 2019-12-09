@@ -35,7 +35,7 @@ jobs:
         [string]$latestTag=iex 'git describe --tags --abbrev=0'
         [string]$version="v$latestTag.$(BUILD.BUILDNUMBER)"
         Write-Output "##vso[build.updatebuildnumber]$version"
-      displayName: "Get latest git tag"
+      displayName: "Set buld task name"
 
     - task: UseDotNet@2
       displayName: "Add dotnet core 2.1"
