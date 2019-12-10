@@ -1,6 +1,8 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
+name: $(Rev:r)
+
 trigger:
   tags:
     include:
@@ -14,15 +16,11 @@ pool:
 steps:
 - pwsh: |
     [string]$latestTag=iex 'git describe --tags --abbrev=0'
-    [string]$version="v$latestTag.$(BUILD.BUILDNUMBER)"
-    Write-Output "##vso[task.setvariable variable=releaseTag]$latestTag"
-    Write-Output "##vso[task.setvariable variable=version]$version"
+    Write-Host "##vso[task.setvariable variable=releaseTag]$latestTag"
+    Write-Host "##vso[build.updatebuildnumber]v$latestTag"
   displayName: "Set buld task name"
 
 - template: ci/templates/build-and-package.yml
-
-- pwsh: |
-    Write-Host "##vso[build.updatebuildnumber]$(latestTag)"
 
 - task: NuGetAuthenticate@0
   inputs:
@@ -44,4 +42,4 @@ steps:
     releaseNotesSource: 'inline'
     changeLogCompareToRelease: 'lastFullRelease'
     changeLogType: 'commitBased'
-    tag: $(latestTag)
+    tag: $(releaseTag)
