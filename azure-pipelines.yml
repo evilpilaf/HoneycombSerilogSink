@@ -15,6 +15,9 @@ trigger:
     - .gitignore
     - LICENSE.TXT
     - README.md
+  tags:
+    exclude:
+      - "*"
 
 jobs:
 - job: Windows
@@ -27,13 +30,10 @@ jobs:
 
   steps:
   - pwsh: |
-    displayName: "Echo the build variables"
-
-  - pwsh: |
       [string]$latestTag=iex 'git describe --tags --abbrev=0'
       [string]$version="v$latestTag.$(BUILD.BUILDNUMBER)"
-      Write-Output 'BUILD_PR=$(SYSTEM.PULLREQUEST.PULLREQUESTNUMBER) BUILD_ID=$(BUILD.BUILDNUMBER)'
-      Write-Output "##vso[task.setvariable variable=releaseTag]$latestTag"
+      Write-Host 'BUILD_PR=$(SYSTEM.PULLREQUEST.PULLREQUESTNUMBER) BUILD_ID=$(BUILD.BUILDNUMBER)'
+      Write-Host "##vso[task.setvariable variable=releaseTag]$latestTag"
       Write-Host "##vso[build.updatebuildnumber]$version"
     displayName: "Set buld task name"
 
