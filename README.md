@@ -1,5 +1,7 @@
 # Honeycomb Serilog sink
 
+[![Build Status](https://dev.azure.com/evilpilaf/Honeycomb%20Serilog%20sink/_apis/build/status/evilpilaf.HoneycombSerilogSink?branchName=master)](https://dev.azure.com/evilpilaf/Honeycomb%20Serilog%20sink/_build/latest?definitionId=5&branchName=master) ![Nuget](https://img.shields.io/nuget/v/Honeycomb.Serilog.Sink)
+
 This project aims to provide a Serilog sink to push structured log events to the [Honeycomb](https://www.honeycomb.io/) platform for observability and monitoring purposes.
 
 By hooking up to serilog my objective is to allow all existing applications which already produce structured events for logging to easily include Honeycomb as part of their pipeline.
