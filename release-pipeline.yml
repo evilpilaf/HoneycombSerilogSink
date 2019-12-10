@@ -25,12 +25,8 @@ steps:
 
 - template: ci/templates/build-and-package.yml
 
-- task: NuGetAuthenticate@0
-  inputs:
-    nuGetServiceConnections: 'HoneycombSinkNugetFeed'
-
 - task: NuGetCommand@2
-  displayName: 'Push package to nuget'
+  displayName: 'Push package to Nuget.org'
   inputs:
     command: push
     nuGetFeedType: external
