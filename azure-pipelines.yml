@@ -33,7 +33,8 @@ jobs:
       [string]$latestTag=iex 'git describe --tags --abbrev=0'
       [string]$version="v$latestTag.$(BUILD.BUILDNUMBER)"
       Write-Output 'BUILD_PR=$(SYSTEM.PULLREQUEST.PULLREQUESTNUMBER) BUILD_ID=$(BUILD.BUILDNUMBER)'
-      Write-Output "##vso[task.setvariable variable=version]$version"
+      Write-Output "##vso[task.setvariable variable=releaseTag]$latestTag"
+      Write-Host "##vso[build.updatebuildnumber]$version"
     displayName: "Set buld task name"
 
   - template: ci/templates/build-and-package.yml
