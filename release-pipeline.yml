@@ -13,6 +13,9 @@ pr: none
 pool:
   vmImage: 'windows-latest'
 
+variables:
+  buildConfiguration: Release
+
 steps:
 - pwsh: |
     [string]$latestTag=iex 'git describe --tags --abbrev=0'
