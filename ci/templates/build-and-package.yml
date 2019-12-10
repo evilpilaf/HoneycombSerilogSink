@@ -35,7 +35,9 @@ steps:
   inputs:
     command: 'test'
     projects: 'HoneycombSerilogSink.sln'
-    arguments: '--no-restore --no-build -c $(buildConfiguration) --collect "Code coverage"'
+    arguments: '--no-restore --no-build -c $(buildConfiguration) --collect "Code coverage" --logger trx'
+
+- task: PublishTestResults@2
 
 - task: DotNetCoreCLI@2
   displayName: 'Package'
