@@ -26,7 +26,14 @@ jobs:
     buildConfiguration: Release
 
   steps:
-    - template: ci/templates/build-and-package.yml
+  - pwsh: |
+    displayName: "Echo the build variables"
 
-    - pwsh: |
-        Write-Host "##vso[build.updatebuildnumber]$(version)"
+  - pwsh: |
+      [string]$latestTag=iex 'git describe --tags --abbrev=0'
+      [string]$version="v$latestTag.$(BUILD.BUILDNUMBER)"
+      Write-Output 'BUILD_PR=$(SYSTEM.PULLREQUEST.PULLREQUESTNUMBER) BUILD_ID=$(BUILD.BUILDNUMBER)'
+      Write-Output "##vso[task.setvariable variable=version]$version"
+    displayName: "Set buld task name"
+
+  - template: ci/templates/build-and-package.yml
