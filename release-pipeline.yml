@@ -1,0 +1,47 @@
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+  tags:
+    include:
+    - "*"
+
+pr: none
+
+pool:
+  vmImage: 'windows-latest'
+
+steps:
+- pwsh: |
+    [string]$latestTag=iex 'git describe --tags --abbrev=0'
+    [string]$version="v$latestTag.$(BUILD.BUILDNUMBER)"
+    Write-Output "##vso[task.setvariable variable=releaseTag]$latestTag"
+    Write-Output "##vso[task.setvariable variable=version]$version"
+  displayName: "Set buld task name"
+
+- template: ci/templates/build-and-package.yml
+
+- pwsh: |
+    Write-Host "##vso[build.updatebuildnumber]$(latestTag)"
+
+- task: NuGetAuthenticate@0
+  inputs:
+    nuGetServiceConnections: 'HoneycombSinkNugetFeed'
+
+- task: NuGetCommand@2
+  displayName: 'Push package to nuget'
+  inputs:
+    command: push
+    nuGetFeedType: external
+    publishFeedCredentials: HoneycombSinkNugetFeed
+
+- task: GitHubRelease@1
+  inputs:
+    gitHubConnection: GithubServiceConnection
+    repositoryName: '$(Build.Repository.Name)'
+    action: 'edit'
+    target: '$(Build.SourceVersion)'
+    releaseNotesSource: 'inline'
+    changeLogCompareToRelease: 'lastFullRelease'
+    changeLogType: 'commitBased'
+    tag: $(latestTag)
