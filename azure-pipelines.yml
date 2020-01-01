@@ -15,6 +15,7 @@ trigger:
     - .gitignore
     - LICENSE.TXT
     - README.md
+    - CODE_OF_CONDUCT.md
   tags:
     exclude:
       - "*"
