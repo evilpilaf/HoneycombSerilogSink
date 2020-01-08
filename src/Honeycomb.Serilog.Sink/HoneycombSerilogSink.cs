@@ -36,7 +36,7 @@ namespace Honeycomb.Serilog.Sink
                     Content = new StringContent(evnt, Encoding.UTF8, "application/json")
                 };
                 message.Headers.Add("X-Honeycomb-Team", _apiKey);
-                Client.SendAsync(message).ConfigureAwait(false).GetAwaiter().GetResult();
+                Client.SendAsync(message).ConfigureAwait(false);
             }
         }
 
