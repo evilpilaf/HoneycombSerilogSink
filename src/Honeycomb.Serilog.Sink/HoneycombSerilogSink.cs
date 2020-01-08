@@ -12,7 +12,7 @@ namespace Honeycomb.Serilog.Sink
 {
     internal class HoneycombSerilogSink : ILogEventSink
     {
-        private static readonly Uri _honeycombApiUrl = new Uri("https://api.honeycomb.io/1/events/");
+        private static readonly Uri _honeycombApiUrl = new Uri("https://api.honeycomb.io/");
 
         private readonly string _teamId;
         private readonly string _apiKey;
@@ -31,7 +31,7 @@ namespace Honeycomb.Serilog.Sink
             using (var buffer = new StringWriter(new StringBuilder()))
             {
                 var evnt = BuildLogEvent(logEvent);
-                var message = new HttpRequestMessage(HttpMethod.Post, $"/{_teamId}")
+                var message = new HttpRequestMessage(HttpMethod.Post, $"/1/events/{_teamId}")
                 {
                     Content = new StringContent(evnt, Encoding.UTF8, "application/json")
                 };
