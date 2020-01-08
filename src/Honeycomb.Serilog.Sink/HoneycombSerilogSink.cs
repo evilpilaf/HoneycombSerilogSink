@@ -33,7 +33,7 @@ namespace Honeycomb.Serilog.Sink
                 var evnt = BuildLogEvent(logEvent);
                 var message = new HttpRequestMessage(HttpMethod.Post, $"/{_teamId}")
                 {
-                    Content = new StringContent(evnt)
+                    Content = new StringContent(evnt, Encoding.UTF8, "application/json")
                 };
                 message.Headers.Add("X-Honeycomb-Team", _apiKey);
                 Client.SendAsync(message).ConfigureAwait(false).GetAwaiter().GetResult();
@@ -72,7 +72,6 @@ namespace Honeycomb.Serilog.Sink
             {
                 BaseAddress = _honeycombApiUrl
             };
-            client.DefaultRequestHeaders.Add("Content-Type", "application/json");
             return client;
         }
     }
