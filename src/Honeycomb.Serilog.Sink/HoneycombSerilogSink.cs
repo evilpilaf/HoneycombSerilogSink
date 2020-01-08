@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
-
+using Newtonsoft.Json;
 using Serilog.Core;
 using Serilog.Events;
 
@@ -53,12 +53,12 @@ namespace Honeycomb.Serilog.Sink
 
             if (logEvent.Exception != null)
             {
-                propertyList.Add($"\"exception\": \"{logEvent.Exception.ToString()}\"");
+                propertyList.Add($"\"exception\": {JsonConvert.ToString(logEvent.Exception.ToString())}");
             }
 
             foreach (var prop in logEvent.Properties)
             {
-                propertyList.Add($"\"{prop.Key}\": {prop.Value.ToString()}");
+                propertyList.Add($"\"{prop.Key}\": {JsonConvert.SerializeObject(prop.Value).ToString()}");
             }
 
             evnt.Append(string.Join(",", propertyList));
