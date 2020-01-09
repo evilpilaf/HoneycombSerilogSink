@@ -1,16 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Text;
-using Newtonsoft.Json;
-using Serilog.Core;
+using System.Threading.Tasks;
+
+using Honeycomb.Serilog.Sink.Formatters;
+
 using Serilog.Events;
+using Serilog.Sinks.PeriodicBatching;
 
 namespace Honeycomb.Serilog.Sink
 {
-    internal class HoneycombSerilogSink : ILogEventSink
+    internal class HoneycombSerilogSink : PeriodicBatchingSink
     {
         private static readonly Uri _honeycombApiUrl = new Uri("https://api.honeycomb.io/");
 
@@ -20,50 +22,52 @@ namespace Honeycomb.Serilog.Sink
         private readonly Lazy<HttpClient> _clientBuilder = new Lazy<HttpClient>(BuildHttpClient);
         protected virtual HttpClient Client => _clientBuilder.Value;
 
-        public HoneycombSerilogSink(string teamId, string apiKey)
+        /// <param name="teamId">The name of the team to submit the events to</param>
+        /// <param name="apiKey">The API key given in the Honeycomb ui</param>
+        /// <param name="batchSizeLimit">The maximum number of events to include in a single batch.</param>
+        /// <param name="period">The time to wait between checking for event batches.</param>
+        public HoneycombSerilogSink(
+            string teamId,
+            string apiKey,
+            int batchSizeLimit,
+            TimeSpan period)
+             : base(batchSizeLimit, period)
         {
             _teamId = string.IsNullOrWhiteSpace(teamId) ? throw new ArgumentNullException(nameof(teamId)) : teamId;
             _apiKey = string.IsNullOrWhiteSpace(apiKey) ? throw new ArgumentNullException(nameof(apiKey)) : apiKey;
         }
 
-        public void Emit(LogEvent logEvent)
+        protected override async Task EmitBatchAsync(IEnumerable<LogEvent> events)
         {
-            using (var buffer = new StringWriter(new StringBuilder()))
+            using (TextWriter writer = new StringWriter())
             {
-                var evnt = BuildLogEvent(logEvent);
-                var message = new HttpRequestMessage(HttpMethod.Post, $"/1/events/{_teamId}")
-                {
-                    Content = new StringContent(evnt, Encoding.UTF8, "application/json")
-                };
-                message.Headers.Add("X-Honeycomb-Team", _apiKey);
-                Client.SendAsync(message).ConfigureAwait(false);
+                BuildLogEvent(events, writer);
+                await SendBatchedEvents(writer.ToString());
             }
         }
 
-        private static string BuildLogEvent(LogEvent logEvent)
+        private async Task SendBatchedEvents(string events)
         {
-            var evnt = new StringBuilder("{");
-
-            var propertyList = new List<string>(logEvent.Properties.Count() + 4)
+            var message = new HttpRequestMessage(HttpMethod.Post, $"/1/batch/{_teamId}")
             {
-                $"\"timestamp\": \"{logEvent.Timestamp:O}\"",
-                $"\"level\": \"{logEvent.Level}\"",
-                $"\"messageTemplate\": \"{logEvent.MessageTemplate}\""
+                Content = new StringContent(events, Encoding.UTF8, "application/json")
             };
+            message.Headers.Add("X-Honeycomb-Team", _apiKey);
+            var result = await Client.SendAsync(message).ConfigureAwait(false);
+            var response = await result.Content.ReadAsStringAsync().ConfigureAwait(false);
+        }
 
-            if (logEvent.Exception != null)
+        private static void BuildLogEvent(IEnumerable<LogEvent> logEvents, TextWriter payload)
+        {
+            payload.Write("[");
+            var eventSepparator = "";
+            foreach (var evnt in logEvents)
             {
-                propertyList.Add($"\"exception\": {JsonConvert.ToString(logEvent.Exception.ToString())}");
+                payload.Write(eventSepparator);
+                eventSepparator = ",";
+                RawJsonFormatter.FormatContent(evnt, payload);
             }
-
-            foreach (var prop in logEvent.Properties)
-            {
-                propertyList.Add($"\"{prop.Key}\": {JsonConvert.SerializeObject(prop.Value).ToString()}");
-            }
-
-            evnt.Append(string.Join(",", propertyList));
-            evnt.Append("}");
-            return evnt.ToString();
+            payload.Write("]");
         }
 
         private static HttpClient BuildHttpClient()

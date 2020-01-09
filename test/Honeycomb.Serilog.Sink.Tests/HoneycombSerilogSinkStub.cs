@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System;
+using System.Net.Http;
 
 namespace Honeycomb.Serilog.Sink.Tests
 {
@@ -7,7 +8,7 @@ namespace Honeycomb.Serilog.Sink.Tests
         private readonly HttpClient _client;
 
         public HoneycombSerilogSinkStub(HttpClient client, string teamId, string apiKey)
-            : base(teamId, apiKey)
+            : base(teamId, apiKey, 1, TimeSpan.FromMilliseconds(1))
         {
             _client = client;
         }
