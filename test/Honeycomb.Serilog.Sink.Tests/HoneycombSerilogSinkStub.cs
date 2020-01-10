@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading.Tasks;
+
+using Serilog.Events;
 
 namespace Honeycomb.Serilog.Sink.Tests
 {
@@ -7,12 +11,17 @@ namespace Honeycomb.Serilog.Sink.Tests
     {
         private readonly HttpClient _client;
 
-        public HoneycombSerilogSinkStub(HttpClient client, string teamId, string apiKey)
-            : base(teamId, apiKey, 1, TimeSpan.FromMilliseconds(1))
+        public HoneycombSerilogSinkStub(HttpClient client, string teamId, string apiKey, int batchSizeLimit, TimeSpan period)
+            : base(teamId, apiKey, batchSizeLimit, period)
         {
             _client = client;
         }
 
         protected override HttpClient Client => _client;
+
+        public Task EmitTestable(params LogEvent[] events)
+        {
+            return EmitBatchAsync(events);
+        }
     }
 }

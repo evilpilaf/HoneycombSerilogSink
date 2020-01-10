@@ -15,7 +15,10 @@ namespace Honeycomb.Serilog.Sink.Tests.Helpers
         {
             RequestMessage = request;
             RequestContent = await request.Content.ReadAsStringAsync();
-            return new HttpResponseMessage(_statusCodeToReturn);
+            return new HttpResponseMessage(_statusCodeToReturn)
+            {
+                Content = new StringContent("")
+            };
         }
 
         public void ReturnsStatusCode(HttpStatusCode statusCode)
