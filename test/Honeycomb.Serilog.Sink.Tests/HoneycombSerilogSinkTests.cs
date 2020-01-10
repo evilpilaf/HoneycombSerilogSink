@@ -2,11 +2,13 @@
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 using FluentAssertions;
 using FluentAssertions.Execution;
 
 using Honeycomb.Serilog.Sink.Tests.Builders;
+using Honeycomb.Serilog.Sink.Tests.Helpers;
 
 using Serilog.Events;
 using Serilog.Parsing;
@@ -42,7 +44,7 @@ namespace Honeycomb.Serilog.Sink.Tests
         }
 
         [Fact]
-        public void Emit_AlwaysSendsApiKey()
+        public async Task Emit_AlwaysSendsApiKeyAsync()
         {
             const string teamId = nameof(teamId);
             const string apiKey = nameof(apiKey);
@@ -51,14 +53,14 @@ namespace Honeycomb.Serilog.Sink.Tests
 
             var sut = CreateSut(teamId, apiKey, clientStub);
 
-            sut.Emit(new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate("", Enumerable.Empty<MessageTemplateToken>()), Enumerable.Empty<LogEventProperty>()));
+            await sut.EmitTestable(new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate("", Enumerable.Empty<MessageTemplateToken>()), Enumerable.Empty<LogEventProperty>()));
 
             clientStub.RequestSubmitted.Headers.Should().ContainSingle(h => h.Key == "X-Honeycomb-Team");
             clientStub.RequestSubmitted.Headers.GetValues("X-Honeycomb-Team").Should().ContainSingle().Which.Should().Be(apiKey);
         }
 
         [Fact]
-        public void Emit_CallsEndpointUsingTeamId()
+        public async Task Emit_CallsEndpointUsingTeamId()
         {
             const string teamId = nameof(teamId);
             const string apiKey = nameof(apiKey);
@@ -67,13 +69,13 @@ namespace Honeycomb.Serilog.Sink.Tests
 
             var sut = CreateSut(teamId, apiKey, clientStub);
 
-            sut.Emit(new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate("", Enumerable.Empty<MessageTemplateToken>()), Enumerable.Empty<LogEventProperty>()));
+            await sut.EmitTestable(new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate("", Enumerable.Empty<MessageTemplateToken>()), Enumerable.Empty<LogEventProperty>()));
 
             clientStub.RequestSubmitted.RequestUri.ToString().Should().EndWith(teamId);
         }
 
         [Fact]
-        public void Emit_GivenNoExceptionIsLogged_SerializesLogMessageAsJson_HasNoExceptionInMessage()
+        public async Task Emit_GivenNoExceptionIsLogged_SerializesLogMessageAsJson_HasNoExceptionInMessageAsync()
         {
             const string teamId = nameof(teamId);
             const string apiKey = nameof(apiKey);
@@ -83,29 +85,34 @@ namespace Honeycomb.Serilog.Sink.Tests
             var sut = CreateSut(teamId, apiKey, clientStub);
 
             var level = LogEventLevel.Fatal;
-            var eventTime = DateTimeOffset.Now;
 
-            var messageTemplateParser = new MessageTemplateParser();
             var messageTempalteString = "Testing message {message}";
-            var messageTemplate = messageTemplateParser.Parse(messageTempalteString);
 
-            sut.Emit(new LogEvent(eventTime, level, null, messageTemplate, Enumerable.Empty<LogEventProperty>()));
-            //sut.Emit(new LogEvent(eventTime, level, null, messageTemplate, new[] { new LogEventProperty("message", new ScalarValue("hello")), new LogEventProperty("message2", new ScalarValue("hello2")) }));
+            var eventToSend = Some.LogEvent(level, messageTempalteString);
+
+            await sut.EmitTestable(eventToSend);
 
             var requestContent = clientStub.RequestContent;
             using (var document = JsonDocument.Parse(requestContent))
             using (new AssertionScope())
             {
-                document.RootElement.GetProperty("level").GetString().Should().Be(level.ToString());
-                document.RootElement.GetProperty("timestamp").GetDateTimeOffset().Should().Be(eventTime);
-                document.RootElement.GetProperty("messageTemplate").GetString().Should().Be(messageTempalteString);
-                document.RootElement.TryGetProperty("exception", out var ex);
+                document.RootElement.ValueKind.Should().Be(JsonValueKind.Array);
+                document.RootElement.GetArrayLength().Should().Be(1);
+                JsonElement sentEvent = document.RootElement.EnumerateArray().Single();
+
+                sentEvent.GetProperty("time").GetDateTimeOffset().Should().Be(eventToSend.Timestamp);
+                sentEvent.GetProperty("data").ValueKind.Should().Be(JsonValueKind.Object);
+
+                JsonElement data = sentEvent.GetProperty("data");
+                data.GetProperty("level").GetString().Should().Be(level.ToString());
+                data.GetProperty("messageTemplate").GetString().Should().Be(messageTempalteString);
+                data.TryGetProperty("exception", out var ex);
                 ex.ValueKind.Should().Be(JsonValueKind.Undefined);
             }
         }
 
         [Fact]
-        public void Emit_GivenAnExceptionToLog_SerializesLogMessageAsJson_IncludesExceptionInMessage()
+        public async Task Emit_GivenAnExceptionToLog_SerializesLogMessageAsJson_IncludesExceptionInMessageAsync()
         {
             const string teamId = nameof(teamId);
             const string apiKey = nameof(apiKey);
@@ -115,28 +122,34 @@ namespace Honeycomb.Serilog.Sink.Tests
             var sut = CreateSut(teamId, apiKey, clientStub);
 
             var level = LogEventLevel.Fatal;
-            var eventTime = DateTimeOffset.Now;
 
-            var messageTemplateParser = new MessageTemplateParser();
             var messageTempalteString = "Testing message {message}";
-            var messageTemplate = messageTemplateParser.Parse(messageTempalteString);
             var ex = new Exception("TestException");
 
-            sut.Emit(new LogEvent(eventTime, level, ex, messageTemplate, Enumerable.Empty<LogEventProperty>()));
+            var eventToSend = Some.LogEvent(level, ex, messageTempalteString);
+
+            await sut.EmitTestable(eventToSend);
 
             var requestContent = clientStub.RequestContent;
             using (var document = JsonDocument.Parse(requestContent))
             using (new AssertionScope())
             {
-                document.RootElement.GetProperty("level").GetString().Should().Be(level.ToString());
-                document.RootElement.GetProperty("timestamp").GetDateTimeOffset().Should().Be(eventTime);
-                document.RootElement.GetProperty("messageTemplate").GetString().Should().Be(messageTempalteString);
-                document.RootElement.GetProperty("exception").GetString().Should().Be(ex.ToString());
+                document.RootElement.ValueKind.Should().Be(JsonValueKind.Array);
+                document.RootElement.GetArrayLength().Should().Be(1);
+                JsonElement sentEvent = document.RootElement.EnumerateArray().Single();
+
+                sentEvent.GetProperty("time").GetDateTimeOffset().Should().Be(eventToSend.Timestamp);
+                sentEvent.GetProperty("data").ValueKind.Should().Be(JsonValueKind.Object);
+                JsonElement data = sentEvent.GetProperty("data");
+
+                data.GetProperty("level").GetString().Should().Be(level.ToString());
+                data.GetProperty("messageTemplate").GetString().Should().Be(messageTempalteString);
+                data.GetProperty("exception").GetString().Should().Be(ex.ToString());
             }
         }
 
         [Fact]
-        public void Emit_GivenAMessageWithProperties_SendsThemAll()
+        public async Task Emit_GivenAMessageWithProperties_SendsThemAllAsync()
         {
             const string teamId = nameof(teamId);
             const string apiKey = nameof(apiKey);
@@ -146,30 +159,35 @@ namespace Honeycomb.Serilog.Sink.Tests
             var sut = CreateSut(teamId, apiKey, clientStub);
 
             var level = LogEventLevel.Fatal;
-            var eventTime = DateTimeOffset.Now;
 
-            var messageTemplateParser = new MessageTemplateParser();
-            var messageTempalteString = "Testing message {message}";
-            var messageTemplate = messageTemplateParser.Parse(messageTempalteString);
-            var ex = new Exception("TestException");
+            const string property = nameof(property);
 
-            const string propertyName = nameof(propertyName);
-            const string propertyValue = nameof(propertyValue);
-            var properties = new LogEventProperty(propertyName, new ScalarValue(propertyValue));
+            var messageTempalteString = $"Testing message property {{{nameof(property)}}}";
 
-            sut.Emit(new LogEvent(eventTime, level, ex, messageTemplate, new[] { properties }));
+            var eventToSend = Some.LogEvent(level, messageTempalteString, property);
+
+            await sut.EmitTestable(eventToSend);
 
             var requestContent = clientStub.RequestContent;
             using (var document = JsonDocument.Parse(requestContent))
             using (new AssertionScope())
             {
-                document.RootElement.GetProperty(propertyName).GetString().Should().Be(propertyValue);
+                document.RootElement.ValueKind.Should().Be(JsonValueKind.Array);
+                document.RootElement.GetArrayLength().Should().Be(1);
+                JsonElement sentEvent = document.RootElement.EnumerateArray().Single();
+
+                sentEvent.GetProperty("time").GetDateTimeOffset().Should().Be(eventToSend.Timestamp);
+                sentEvent.GetProperty("data").ValueKind.Should().Be(JsonValueKind.Object);
+
+                JsonElement data = sentEvent.GetProperty("data");
+
+                data.GetProperty(nameof(property)).GetString().Should().Be(property);
             }
         }
 
-        private HoneycombSerilogSink CreateSut(string teamId, string apiKey, HttpClient client = null)
+        private HoneycombSerilogSinkStub CreateSut(string teamId, string apiKey, HttpClient client = null)
         {
-            return new HoneycombSerilogSinkStub(client, teamId, apiKey);
+            return new HoneycombSerilogSinkStub(client, teamId, apiKey, 1, TimeSpan.FromMilliseconds(1));
         }
     }
 }
