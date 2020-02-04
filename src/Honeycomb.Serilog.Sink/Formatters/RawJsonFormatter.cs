@@ -24,7 +24,7 @@ namespace Honeycomb.Serilog.Sink.Formatters
             if (output == null) throw new ArgumentNullException(nameof(output));
 
             output.Write($"{{\"time\":\"{logEvent.Timestamp:O}\",");
-            output.Write($"\"data\":{{");
+            output.Write("\"data\":{");
             output.Write($"\"level\":\"{logEvent.Level}\"");
             output.Write(",\"messageTemplate\":");
             JsonValueFormatter.WriteQuotedJsonString(logEvent.MessageTemplate.Text, output);
@@ -45,7 +45,7 @@ namespace Honeycomb.Serilog.Sink.Formatters
 
         private static void WriteProperties(IReadOnlyDictionary<string, LogEventPropertyValue> properties, TextWriter output)
         {
-            var precedingDelimiter = ",";
+            const string precedingDelimiter = ",";
             foreach (var property in properties)
             {
                 output.Write(precedingDelimiter);
