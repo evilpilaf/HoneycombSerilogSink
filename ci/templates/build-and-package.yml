@@ -1,59 +1,62 @@
 steps:
+  - task: UseDotNet@2
+    displayName: "Add dotnet core 2.1"
+    inputs:
+      version: 2.1.x
+      packageType: sdk
+      includePreviewVersions: false
 
-- task: UseDotNet@2
-  displayName: "Add dotnet core 2.1"
-  inputs:
-    version: 2.1.x
-    packageType: sdk
-    includePreviewVersions: false
+  - task: UseDotNet@2
+    displayName: "Use dotnet core 3.1"
+    inputs:
+      version: 3.1.x
+      packageType: sdk
+      includePreviewVersions: true
 
-- task: UseDotNet@2
-  displayName: "Use dotnet core 3.1"
-  inputs:
-    version: 3.1.x
-    packageType: sdk
-    includePreviewVersions: true
+  - task: DotNetCoreCLI@2
+    displayName: "Restore packages"
+    inputs:
+      command: "restore"
+      projects: "HoneycombSerilogSink.sln"
 
-- task: DotNetCoreCLI@2
-  displayName: "Restore packages"
-  inputs:
-    command: "restore"
-    projects: "HoneycombSerilogSink.sln"
+  - task: DotNetCoreCLI@2
+    displayName: "Build"
+    env:
+      BUILD_PR: $(SYSTEM.PULLREQUEST.PULLREQUESTNUMBER)
+      BUILD_ID: $(BUILD.BUILDNUMBER)
+    inputs:
+      command: "build"
+      projects: "HoneycombSerilogSink.sln"
+      arguments: "-c $(buildConfiguration)"
 
-- task: DotNetCoreCLI@2
-  displayName: "Build"
-  env:
-    BUILD_PR: $(SYSTEM.PULLREQUEST.PULLREQUESTNUMBER)
-    BUILD_ID: $(BUILD.BUILDNUMBER)
-  inputs:
-    command: "build"
-    projects: "HoneycombSerilogSink.sln"
-    arguments: '-c $(buildConfiguration)'
+  - task: DotNetCoreCLI@2
+    displayName: "Test"
+    inputs:
+      command: "test"
+      projects: "HoneycombSerilogSink.sln"
+      arguments: '--no-restore --no-build -c $(buildConfiguration) --collect "Code coverage" --logger trx'
 
-- task: DotNetCoreCLI@2
-  displayName: 'Test'
-  inputs:
-    command: 'test'
-    projects: 'HoneycombSerilogSink.sln'
-    arguments: '--no-restore --no-build -c $(buildConfiguration) --collect "Code coverage" --logger trx'
+  - task: PublishTestResults@2
+    displayName: "Publish test results"
+    inputs:
+      testResultsFormat: VSTest
+      testResultFiles: "**/TEST-*.trx"
 
-- task: PublishTestResults@2
+  - task: DotNetCoreCLI@2
+    displayName: "Package"
+    env:
+      BUILD_PR: $(SYSTEM.PULLREQUEST.PULLREQUESTNUMBER)
+      BUILD_ID: $(BUILD.BUILDNUMBER)
+    inputs:
+      command: "pack"
+      arguments: '.\src\Honeycomb.Serilog.Sink\Honeycomb.Serilog.Sink.csproj --output $(Build.ArtifactStagingDirectory) --configuration $(buildConfiguration) --no-build'
 
-- task: DotNetCoreCLI@2
-  displayName: 'Package'
-  env:
-    BUILD_PR: $(SYSTEM.PULLREQUEST.PULLREQUESTNUMBER)
-    BUILD_ID: $(BUILD.BUILDNUMBER)
-  inputs:
-    command: 'pack'
-    arguments: '.\src\Honeycomb.Serilog.Sink\Honeycomb.Serilog.Sink.csproj --output $(Build.ArtifactStagingDirectory) --configuration $(buildConfiguration) --no-build'
-
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish built artifacts'
-  env:
-    BUILD_PR: $(SYSTEM.PULLREQUEST.PULLREQUESTNUMBER)
-    BUILD_ID: $(BUILD.BUILDNUMBER)
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'nuget'
-    publishLocation: 'Container'
+  - task: PublishBuildArtifacts@1
+    displayName: "Publish built artifacts"
+    env:
+      BUILD_PR: $(SYSTEM.PULLREQUEST.PULLREQUESTNUMBER)
+      BUILD_ID: $(BUILD.BUILDNUMBER)
+    inputs:
+      PathtoPublish: "$(Build.ArtifactStagingDirectory)"
+      ArtifactName: "nuget"
+      publishLocation: "Container"
