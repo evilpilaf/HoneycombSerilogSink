@@ -39,3 +39,8 @@ jobs:
     displayName: "Set buld task name"
 
   - template: ci/templates/build-and-package.yml
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'VSTest'
+      testResultsFiles: '**/*.trx'
