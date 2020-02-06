@@ -37,6 +37,10 @@ steps:
       arguments: '--no-restore --no-build -c $(buildConfiguration) --collect "Code coverage" --logger trx'
 
   - task: PublishTestResults@2
+    displayName: "Publish test results"
+    inputs:
+      testResultsFormat: VSTest
+      testResultFiles: "**/TEST-*.trx"
 
   - task: DotNetCoreCLI@2
     displayName: "Package"
