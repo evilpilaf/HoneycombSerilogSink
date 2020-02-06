@@ -34,13 +34,23 @@ steps:
     inputs:
       command: "test"
       projects: "HoneycombSerilogSink.sln"
-      arguments: '--no-restore --no-build -c $(buildConfiguration) --collect "Code coverage" --logger trx'
+      arguments: '--no-restore --no-build -c $(buildConfiguration) --collect:"XPlat Code Coverage" --logger trx'
 
-  - task: PublishTestResults@2
-    displayName: "Publish test results"
+  - task: DotNetCoreCLI@2
     inputs:
-      testResultsFormat: VSTest
-      testResultFiles: "**/TEST-*.trx"
+      command: custom
+      custom: tool
+      arguments: install --tool-path . dotnet-reportgenerator-globaltool
+    displayName: Install ReportGenerator tool
+
+  - pwsh: ./reportgenerator -reports:$(Agent.TempDirectory)/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/coverlet/reports -reporttypes:"Cobertura"
+    displayName: Create reports
+
+  - task: PublishCodeCoverageResults@1
+    displayName: "Publish code coverage"
+    inputs:
+      codeCoverageTool: Cobertura
+      summaryFileLocation: $(Build.SourcesDirectory)/coverlet/reports/Cobertura.xml
 
   - task: DotNetCoreCLI@2
     displayName: "Package"
