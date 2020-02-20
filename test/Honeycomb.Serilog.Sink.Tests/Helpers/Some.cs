@@ -37,7 +37,7 @@ namespace Honeycomb.Serilog.Sink.Tests.Helpers
         public static LogEvent LogEvent(LogEventLevel level, string messageTemplate, params object[] propertyValues)
         {
             var log = new LoggerConfiguration().CreateLogger();
-            
+
 #pragma warning disable Serilog004 // Constant MessageTemplate verifier
             if (!log.BindMessageTemplate(messageTemplate, propertyValues, out var template, out var properties))
 #pragma warning restore Serilog004 // Constant MessageTemplate verifier

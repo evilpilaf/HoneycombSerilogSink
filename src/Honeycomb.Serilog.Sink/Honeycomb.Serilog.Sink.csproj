@@ -2,13 +2,14 @@
 
   <PropertyGroup>
     <TargetFrameworks>net461;netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Title>Honeycomb Serilog sink</Title>
     <Authors>evilpilaf</Authors>
     <PackageTags>Honeycomb Serilog Sink Observability Logging Monitoring</PackageTags>
     <RepositoryUrl>https://github.com/evilpilaf/HoneycombSerilogSink/</RepositoryUrl>
     <Description>A sink for pushing Serilog structured log events into a Honeycomb instance.</Description>
     <Copyright>evilpilaf © $([System.DateTime]::Now.Year)</Copyright>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageLicenseFile>LICENSE.TXT</PackageLicenseFile>
   </PropertyGroup>
 
   <!-- SourceLink -->
@@ -26,6 +27,7 @@
 
   <ItemGroup>
     <None Include="..\..\assets\icon124x124.png" Pack="true" PackagePath="" />
+    <None Include="..\..\LICENSE.TXT" Pack="true" PackagePath="$(PackageLicenseFile)"/>
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1'">
