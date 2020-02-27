@@ -56,8 +56,10 @@ namespace Honeycomb.Serilog.Sink
         {
             var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"/1/batch/{_teamId}")
             {
-                Content = new StringContent(events, Encoding.UTF8, "application/json")
+                Content = new StringContent(events, Encoding.UTF8, "application/json"),
+                Version = new Version(2, 0)
             };
+
             requestMessage.Headers.Add("X-Honeycomb-Team", _apiKey);
             var result = await SendRequest(requestMessage).ConfigureAwait(false);
             if (!result.IsSuccessStatusCode)
