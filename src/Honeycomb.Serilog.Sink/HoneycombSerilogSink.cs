@@ -61,14 +61,14 @@ namespace Honeycomb.Serilog.Sink
             };
 
             requestMessage.Headers.Add("X-Honeycomb-Team", _apiKey);
-            var result = await SendRequest(requestMessage).ConfigureAwait(false);
-            if (!result.IsSuccessStatusCode)
+            var response = await SendRequest(requestMessage).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
             {
-                using (Stream contentStream = await result.Content.ReadAsStreamAsync().ConfigureAwait(false))
+                using (Stream contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
                 using (var reader = new StreamReader(contentStream))
                 {
-                    var response = await reader.ReadToEndAsync().ConfigureAwait(false);
-                    SelfLog.WriteLine("Failure sending event to Honeycomb, received {statusCode} response with content {content}", result.StatusCode, response);
+                    var responseContent = await reader.ReadToEndAsync().ConfigureAwait(false);
+                    SelfLog.WriteLine("Failure sending event to Honeycomb, received {statusCode} response with content {content}", response.StatusCode, responseContent);
                 }
             }
         }
