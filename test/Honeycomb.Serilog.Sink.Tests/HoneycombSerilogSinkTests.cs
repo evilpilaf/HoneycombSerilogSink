@@ -12,6 +12,7 @@ using Honeycomb.Serilog.Sink.Tests.Helpers;
 
 using Serilog.Events;
 using Serilog.Parsing;
+using Serilog.Sinks.PeriodicBatching;
 
 using Xunit;
 
@@ -187,7 +188,7 @@ namespace Honeycomb.Serilog.Sink.Tests
 
         private HoneycombSerilogSinkStub CreateSut(string teamId, string apiKey, HttpClient client = null)
         {
-            return new HoneycombSerilogSinkStub(client, teamId, apiKey, 1, TimeSpan.FromMilliseconds(1));
+            return new HoneycombSerilogSinkStub(client, teamId, apiKey);
         }
     }
 }

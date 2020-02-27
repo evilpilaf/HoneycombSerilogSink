@@ -13,7 +13,7 @@ using Serilog.Sinks.PeriodicBatching;
 
 namespace Honeycomb.Serilog.Sink
 {
-    internal class HoneycombSerilogSink : PeriodicBatchingSink
+    internal class HoneycombSerilogSink : IBatchedLogEventSink
     {
 #if NETCOREAPP
         private static readonly SocketsHttpHandler _socketsHttpHandler = new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(30) };
@@ -22,28 +22,21 @@ namespace Honeycomb.Serilog.Sink
         private static readonly Lazy<HttpClient> _clientBuilder = new Lazy<HttpClient>(BuildHttpClient);
         protected virtual HttpClient Client => _clientBuilder.Value;
 #endif
-        private static readonly Uri _honeycombApiUrl = new Uri("https://api.honeycomb.io/");
-
         private readonly string _apiKey;
-
         private readonly string _teamId;
+        private static readonly Uri _honeycombApiUrl = new Uri("https://api.honeycomb.io/");
 
         /// <param name="teamId">The name of the team to submit the events to</param>
         /// <param name="apiKey">The API key given in the Honeycomb ui</param>
         /// <param name="batchSizeLimit">The maximum number of events to include in a single batch.</param>
         /// <param name="period">The time to wait between checking for event batches.</param>
-        public HoneycombSerilogSink(
-            string teamId,
-            string apiKey,
-            int batchSizeLimit,
-            TimeSpan period)
-             : base(batchSizeLimit, period)
+        public HoneycombSerilogSink(string teamId, string apiKey)
         {
             _teamId = string.IsNullOrWhiteSpace(teamId) ? throw new ArgumentNullException(nameof(teamId)) : teamId;
             _apiKey = string.IsNullOrWhiteSpace(apiKey) ? throw new ArgumentNullException(nameof(apiKey)) : apiKey;
         }
 
-        protected override async Task EmitBatchAsync(IEnumerable<LogEvent> events)
+        public async Task EmitBatchAsync(IEnumerable<LogEvent> events)
         {
             using (TextWriter writer = new StringWriter())
             {
@@ -109,6 +102,11 @@ namespace Honeycomb.Serilog.Sink
             client.BaseAddress = _honeycombApiUrl;
 
             return client;
+        }
+
+        public Task OnEmptyBatchAsync()
+        {
+            return Task.CompletedTask;
         }
     }
 }
