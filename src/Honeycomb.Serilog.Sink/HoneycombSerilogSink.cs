@@ -56,17 +56,19 @@ namespace Honeycomb.Serilog.Sink
         {
             var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"/1/batch/{_teamId}")
             {
-                Content = new StringContent(events, Encoding.UTF8, "application/json")
+                Content = new StringContent(events, Encoding.UTF8, "application/json"),
+                Version = new Version(2, 0)
             };
+
             requestMessage.Headers.Add("X-Honeycomb-Team", _apiKey);
-            var result = await SendRequest(requestMessage).ConfigureAwait(false);
-            if (!result.IsSuccessStatusCode)
+            var response = await SendRequest(requestMessage).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
             {
-                using (Stream contentStream = await result.Content.ReadAsStreamAsync().ConfigureAwait(false))
+                using (Stream contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
                 using (var reader = new StreamReader(contentStream))
                 {
-                    var response = await reader.ReadToEndAsync().ConfigureAwait(false);
-                    SelfLog.WriteLine("Failure sending event to Honeycomb, received {statusCode} response with content {content}", result.StatusCode, response);
+                    var responseContent = await reader.ReadToEndAsync().ConfigureAwait(false);
+                    SelfLog.WriteLine("Failure sending event to Honeycomb, received {statusCode} response with content {content}", response.StatusCode, responseContent);
                 }
             }
         }
