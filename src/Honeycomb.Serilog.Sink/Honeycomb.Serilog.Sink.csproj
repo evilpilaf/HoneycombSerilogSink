@@ -10,6 +10,7 @@
     <Copyright>evilpilaf © $([System.DateTime]::Now.Year)</Copyright>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageLicenseFile>LICENSE.TXT</PackageLicenseFile>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <!-- SourceLink -->
