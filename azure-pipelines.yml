@@ -2,40 +2,19 @@
 # Start with a minimal pipeline that you can customize to build and deploy your code.
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
-name: $(Rev:r)
+pool:
+  vmImage: 'windows-2019'
 
-trigger:
-  branches:
-    include:
-      - master
-  paths:
-    exclude:
-    - .editorconfig
-    - .gitattributes
-    - .gitignore
-    - LICENSE.TXT
-    - README.md
-    - CODE_OF_CONDUCT.md
-  tags:
-    exclude:
-      - "*"
+variables:
+  buildConfiguration: Release
 
-jobs:
-- job: Windows
+steps:
+- pwsh: |
+    [string]$latestTag=iex 'git describe --tags --abbrev=0'
+    [string]$version="v$latestTag.$(BUILD.BUILDNUMBER)"
+    Write-Host 'BUILD_PR=$(SYSTEM.PULLREQUEST.PULLREQUESTNUMBER) BUILD_ID=$(BUILD.BUILDNUMBER)'
+    Write-Host "##vso[task.setvariable variable=releaseTag]$latestTag"
+    Write-Host "##vso[build.updatebuildnumber]$version"
+  displayName: "Set buld task name"
 
-  pool:
-    vmImage: 'windows-2019'
-
-  variables:
-    buildConfiguration: Release
-
-  steps:
-  - pwsh: |
-      [string]$latestTag=iex 'git describe --tags --abbrev=0'
-      [string]$version="v$latestTag.$(BUILD.BUILDNUMBER)"
-      Write-Host 'BUILD_PR=$(SYSTEM.PULLREQUEST.PULLREQUESTNUMBER) BUILD_ID=$(BUILD.BUILDNUMBER)'
-      Write-Host "##vso[task.setvariable variable=releaseTag]$latestTag"
-      Write-Host "##vso[build.updatebuildnumber]$version"
-    displayName: "Set buld task name"
-
-  - template: ci/templates/build-and-package.yml
+- template: ci/templates/build-and-package.yml
