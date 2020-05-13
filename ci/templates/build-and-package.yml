@@ -1,18 +1,4 @@
 steps:
-  - task: UseDotNet@2
-    displayName: "Add dotnet core 2.1"
-    inputs:
-      version: 2.1.x
-      packageType: sdk
-      includePreviewVersions: false
-
-  - task: UseDotNet@2
-    displayName: "Use dotnet core 3.1"
-    inputs:
-      version: 3.1.x
-      packageType: sdk
-      includePreviewVersions: true
-
   - task: DotNetCoreCLI@2
     displayName: "Restore packages"
     inputs:
