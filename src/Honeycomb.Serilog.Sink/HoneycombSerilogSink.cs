@@ -16,7 +16,7 @@ namespace Honeycomb.Serilog.Sink
     internal class HoneycombSerilogSink : IBatchedLogEventSink, IDisposable
     {
 #if NETCOREAPP
-        private static SocketsHttpHandler _socketsHttpHandler;
+        private static SocketsHttpHandler? _socketsHttpHandler;
 
         private static SocketsHttpHandler SocketsHttpHandler
         {
@@ -54,7 +54,26 @@ namespace Honeycomb.Serilog.Sink
         {
             using TextWriter writer = new StringWriter();
             BuildLogEvent(events, writer);
-            await SendBatchedEvents(writer.ToString()).ConfigureAwait(false);
+            await SendBatchedEvents(writer!.ToString()).ConfigureAwait(false);
+        }
+
+        private async Task SendBatchedEvents(Stream events)
+        {
+            using var requestMessage = new HttpRequestMessage(HttpMethod.Post, string.Format(HoneycombBatchEndpointTemplate, _teamId))
+            {
+                Content = new StreamContent(events),
+                Version = new Version(2, 0)
+            };
+
+            requestMessage.Headers.Add(HoneycombTeamIdHeaderName, _apiKey);
+            var response = await SendRequest(requestMessage).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+            {
+                using Stream contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                using var reader = new StreamReader(contentStream);
+                var responseContent = await reader.ReadToEndAsync().ConfigureAwait(false);
+                SelfLog.WriteLine(SelfLogMessageText, response.StatusCode, responseContent);
+            }
         }
 
         private async Task SendBatchedEvents(string events)

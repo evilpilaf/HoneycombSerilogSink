@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -20,8 +20,15 @@ namespace Honeycomb.Serilog.Sink.Formatters
 
         public static void FormatContent(LogEvent logEvent, TextWriter output)
         {
-            if (logEvent == null) throw new ArgumentNullException(nameof(logEvent));
-            if (output == null) throw new ArgumentNullException(nameof(output));
+            if (logEvent == null)
+            {
+                throw new ArgumentNullException(nameof(logEvent));
+            }
+
+            if (output == null)
+            {
+                throw new ArgumentNullException(nameof(output));
+            }
 
             output.Write($"{{\"time\":\"{logEvent.Timestamp:O}\",");
             output.Write("\"data\":{");

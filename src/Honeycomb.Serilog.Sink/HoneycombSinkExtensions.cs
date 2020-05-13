@@ -31,7 +31,7 @@ namespace Honeycomb.Serilog.Sink
         public static LoggerConfiguration HoneycombSink(this LoggerSinkConfiguration loggerConfiguration,
                                                         string teamId,
                                                         string apiKey,
-                                                        PeriodicBatchingSinkOptions batchingOptions = default)
+                                                        PeriodicBatchingSinkOptions? batchingOptions = default)
         {
             var honeycombSink = new HoneycombSerilogSink(teamId, apiKey);
 
