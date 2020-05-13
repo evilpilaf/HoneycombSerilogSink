@@ -432,3 +432,7 @@ $RECYCLE.BIN/
 !.vscode/launch.json
 !.vscode/extensions.json
 /.ionide
+
+.fake
+.ionide
+.fake
