@@ -18,3 +18,5 @@ steps:
   displayName: "Set buld task name"
 
 - template: ci/templates/build-and-package.yml
+
+- task: SonarQubeAnalyze@4
