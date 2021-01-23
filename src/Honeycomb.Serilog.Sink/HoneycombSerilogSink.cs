@@ -46,8 +46,8 @@ namespace Honeycomb.Serilog.Sink
         /// <param name="apiKey">The API key given in the Honeycomb ui</param>
         public HoneycombSerilogSink(string dataset, string apiKey)
         {
-            _teamId = dataset ?? throw new ArgumentNullException(nameof(dataset));
-            _apiKey = apiKey ?? throw new ArgumentNullException(nameof(apiKey));
+            _teamId = string.IsNullOrWhiteSpace(dataset) ? throw new ArgumentNullException(nameof(dataset)) : dataset;
+            _apiKey = string.IsNullOrWhiteSpace(apiKey) ? throw new ArgumentNullException(nameof(apiKey)) : apiKey;
         }
 
         public async Task EmitBatchAsync(IEnumerable<LogEvent> events)
