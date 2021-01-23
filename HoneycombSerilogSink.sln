@@ -10,11 +10,19 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E4F55B6D-46A4-49ED-B2B6-34CF950436F7}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
+		azure-pipelines.yml = azure-pipelines.yml
+		CODE_OF_CONDUCT.md = CODE_OF_CONDUCT.md
+		global.json = global.json
+		LICENSE.TXT = LICENSE.TXT
+		README.md = README.md
+		release-pipeline.yml = release-pipeline.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{87AFA633-EBC9-4A0C-AE07-C6616BAFB602}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Honeycomb.Serilog.Sink.Tests", "test\Honeycomb.Serilog.Sink.Tests\Honeycomb.Serilog.Sink.Tests.csproj", "{3153A916-94B4-418D-84BD-EB1649449CFF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Honeycomb.Serilog.Sink.Tests", "test\Honeycomb.Serilog.Sink.Tests\Honeycomb.Serilog.Sink.Tests.csproj", "{3153A916-94B4-418D-84BD-EB1649449CFF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
