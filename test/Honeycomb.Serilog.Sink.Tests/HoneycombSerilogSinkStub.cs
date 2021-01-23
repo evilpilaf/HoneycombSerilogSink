@@ -9,8 +9,8 @@ namespace Honeycomb.Serilog.Sink.Tests
     {
         private readonly HttpClient _client;
 
-        public HoneycombSerilogSinkStub(HttpClient client, string teamId, string apiKey)
-            : base(teamId, apiKey)
+        public HoneycombSerilogSinkStub(HttpClient client, string dataset, string apiKey)
+            : base(dataset, apiKey)
         {
             _client = client;
         }
