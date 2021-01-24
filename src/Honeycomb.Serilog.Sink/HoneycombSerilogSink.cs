@@ -42,11 +42,11 @@ namespace Honeycomb.Serilog.Sink
 
         private const string SelfLogMessageText = "Failure sending event to Honeycomb, received {statusCode} response with content {content}";
 
-        /// <param name="teamId">The name of the team to submit the events to</param>
+        /// <param name="dataset">The name of the dataset where to send the events to</param>
         /// <param name="apiKey">The API key given in the Honeycomb ui</param>
-        public HoneycombSerilogSink(string teamId, string apiKey)
+        public HoneycombSerilogSink(string dataset, string apiKey)
         {
-            _teamId = string.IsNullOrWhiteSpace(teamId) ? throw new ArgumentNullException(nameof(teamId)) : teamId;
+            _teamId = string.IsNullOrWhiteSpace(dataset) ? throw new ArgumentNullException(nameof(dataset)) : dataset;
             _apiKey = string.IsNullOrWhiteSpace(apiKey) ? throw new ArgumentNullException(nameof(apiKey)) : apiKey;
         }
 

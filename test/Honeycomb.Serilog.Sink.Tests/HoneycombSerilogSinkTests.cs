@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
@@ -23,13 +23,13 @@ namespace Honeycomb.Serilog.Sink.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void Create_WhenInvalidTeamIdIsProvided_ThrowsArgumentException(string teamId)
+        public void Create_WhenInvalidTeamIdIsProvided_ThrowsArgumentException(string dataset)
         {
             const string apiKey = nameof(apiKey);
-            Action action = () => CreateSut(teamId, apiKey);
+            Action action = () => CreateSut(dataset, apiKey);
 
             action.Should().Throw<ArgumentNullException>()
-                  .Which.Message.Should().Contain(nameof(teamId));
+                  .Which.Message.Should().Contain(nameof(dataset));
         }
 
         [Theory]
@@ -37,8 +37,8 @@ namespace Honeycomb.Serilog.Sink.Tests
         [InlineData(null)]
         public void Create_WhenInvalidApiKeyIsProvided_ThrowsArgumentException(string apiKey)
         {
-            const string teamId = nameof(teamId);
-            Action action = () => CreateSut(teamId, apiKey);
+            const string dataset = nameof(dataset);
+            Action action = () => CreateSut(dataset, apiKey);
 
             action.Should().Throw<ArgumentNullException>()
                   .Which.Message.Should().Contain(nameof(apiKey));
@@ -47,12 +47,12 @@ namespace Honeycomb.Serilog.Sink.Tests
         [Fact]
         public async Task Emit_AlwaysSendsApiKeyAsync()
         {
-            const string teamId = nameof(teamId);
+            const string dataset = nameof(dataset);
             const string apiKey = nameof(apiKey);
 
             HttpClientStub clientStub = A.HttpClient();
 
-            var sut = CreateSut(teamId, apiKey, clientStub);
+            var sut = CreateSut(dataset, apiKey, clientStub);
 
             await sut.EmitTestable(new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate("", Enumerable.Empty<MessageTemplateToken>()), Enumerable.Empty<LogEventProperty>()));
 
@@ -63,27 +63,27 @@ namespace Honeycomb.Serilog.Sink.Tests
         [Fact]
         public async Task Emit_CallsEndpointUsingTeamId()
         {
-            const string teamId = nameof(teamId);
+            const string dataset = nameof(dataset);
             const string apiKey = nameof(apiKey);
 
             HttpClientStub clientStub = A.HttpClient();
 
-            var sut = CreateSut(teamId, apiKey, clientStub);
+            var sut = CreateSut(dataset, apiKey, clientStub);
 
             await sut.EmitTestable(new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate("", Enumerable.Empty<MessageTemplateToken>()), Enumerable.Empty<LogEventProperty>()));
 
-            clientStub.RequestSubmitted.RequestUri.ToString().Should().EndWith(teamId);
+            clientStub.RequestSubmitted.RequestUri.ToString().Should().EndWith(dataset);
         }
 
         [Fact]
         public async Task Emit_GivenNoExceptionIsLogged_SerializesLogMessageAsJson_HasNoExceptionInMessageAsync()
         {
-            const string teamId = nameof(teamId);
+            const string dataset = nameof(dataset);
             const string apiKey = nameof(apiKey);
 
             HttpClientStub clientStub = A.HttpClient();
 
-            var sut = CreateSut(teamId, apiKey, clientStub);
+            var sut = CreateSut(dataset, apiKey, clientStub);
 
             var level = LogEventLevel.Fatal;
 
@@ -115,12 +115,12 @@ namespace Honeycomb.Serilog.Sink.Tests
         [Fact]
         public async Task Emit_GivenAnExceptionToLog_SerializesLogMessageAsJson_IncludesExceptionInMessageAsync()
         {
-            const string teamId = nameof(teamId);
+            const string dataset = nameof(dataset);
             const string apiKey = nameof(apiKey);
 
             HttpClientStub clientStub = A.HttpClient();
 
-            var sut = CreateSut(teamId, apiKey, clientStub);
+            var sut = CreateSut(dataset, apiKey, clientStub);
 
             var level = LogEventLevel.Fatal;
 
@@ -152,12 +152,12 @@ namespace Honeycomb.Serilog.Sink.Tests
         [Fact]
         public async Task Emit_GivenAMessageWithProperties_SendsThemAllAsync()
         {
-            const string teamId = nameof(teamId);
+            const string dataset = nameof(dataset);
             const string apiKey = nameof(apiKey);
 
             HttpClientStub clientStub = A.HttpClient();
 
-            var sut = CreateSut(teamId, apiKey, clientStub);
+            var sut = CreateSut(dataset, apiKey, clientStub);
 
             var level = LogEventLevel.Fatal;
 
@@ -186,9 +186,9 @@ namespace Honeycomb.Serilog.Sink.Tests
             }
         }
 
-        private HoneycombSerilogSinkStub CreateSut(string teamId, string apiKey, HttpClient client = null)
+        private HoneycombSerilogSinkStub CreateSut(string dataset, string apiKey, HttpClient client = null)
         {
-            return new HoneycombSerilogSinkStub(client, teamId, apiKey);
+            return new HoneycombSerilogSinkStub(client, dataset, apiKey);
         }
     }
 }

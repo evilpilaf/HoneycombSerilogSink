@@ -23,13 +23,13 @@ using Honeycomb.Serilog.Sink;
 
 [...]
 
-string teamId = "The Id of your team as defined in Honeycomb";
+string dataset = "The name of the dataset wher your data will be sent";
 string apiKey = "The api key given to you in Honeycomb";
 
 var logger = new LoggerConfiguration()
                     .WriteTo
                     [...]
-                    .HoneycombSink(teamId, apiKey)
+                    .HoneycombSink(dataset, apiKey)
                     [...]
                     .CreateLogger();
 ```
