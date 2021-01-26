@@ -53,8 +53,17 @@ namespace Honeycomb.Serilog.Sink.Formatters
         private static void WriteProperties(IReadOnlyDictionary<string, LogEventPropertyValue> properties, TextWriter output)
         {
             const string precedingDelimiter = ",";
-            foreach (var property in properties)
+            foreach (var property in properties.Where(p => p.Value != null && !string.IsNullOrWhiteSpace(p.Value.ToString())))
             {
+                // Skip properties with empty values
+                if (property.Value is ScalarValue v)
+                {
+                    if (v.Value == null || v.Value.ToString().Equals(""))
+                    {
+                        continue;
+                    }
+                }
+
                 output.Write(precedingDelimiter);
 
                 JsonValueFormatter.WriteQuotedJsonString(property.Key, output);

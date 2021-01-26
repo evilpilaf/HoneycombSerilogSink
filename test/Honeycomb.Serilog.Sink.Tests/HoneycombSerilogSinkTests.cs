@@ -12,7 +12,6 @@ using Honeycomb.Serilog.Sink.Tests.Helpers;
 
 using Serilog.Events;
 using Serilog.Parsing;
-using Serilog.Sinks.PeriodicBatching;
 
 using Xunit;
 
@@ -183,6 +182,45 @@ namespace Honeycomb.Serilog.Sink.Tests
                 JsonElement data = sentEvent.GetProperty("data");
 
                 data.GetProperty(nameof(property)).GetString().Should().Be(property);
+            }
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData(null)]
+        public async Task Emit_GivenAMessageWithEmptyPropertyValue_SkipsSendingProperty(string property)
+        {
+            const string dataset = nameof(dataset);
+            const string apiKey = nameof(apiKey);
+
+            HttpClientStub clientStub = A.HttpClient();
+
+            var sut = CreateSut(dataset, apiKey, clientStub);
+
+            var level = LogEventLevel.Fatal;
+
+            var messageTemplateString = $"Testing message property {{{nameof(property)}}}";
+
+            var eventToSend = Some.LogEvent(level, messageTemplateString, property);
+
+            await sut.EmitTestable(eventToSend);
+
+            var requestContent = clientStub.RequestContent;
+            using (var document = JsonDocument.Parse(requestContent))
+            using (new AssertionScope())
+            {
+                document.RootElement.ValueKind.Should().Be(JsonValueKind.Array);
+                document.RootElement.GetArrayLength().Should().Be(1);
+                JsonElement sentEvent = document.RootElement.EnumerateArray().Single();
+
+                sentEvent.GetProperty("time").GetDateTimeOffset().Should().Be(eventToSend.Timestamp);
+                sentEvent.GetProperty("data").ValueKind.Should().Be(JsonValueKind.Object);
+
+                JsonElement data = sentEvent.GetProperty("data");
+
+                var exists = data.TryGetProperty(nameof(property), out _);
+
+                exists.Should().BeFalse();
             }
         }
 
