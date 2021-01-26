@@ -57,7 +57,9 @@ namespace Honeycomb.Serilog.Sink
             await SendBatchedEvents(writer!.ToString()).ConfigureAwait(false);
         }
 
+        // ReSharper disable UnusedMember.Local
         private async Task SendBatchedEvents(Stream events)
+            // ReSharper restore UnusedMember.Local
         {
             using var requestMessage = new HttpRequestMessage(HttpMethod.Post, string.Format(HoneycombBatchEndpointTemplate, _teamId))
             {
