@@ -3,18 +3,18 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 pool:
-  vmImage: 'windows-2019'
+  vmImage: "ubuntu-18.04"
 
 variables:
   buildConfiguration: Release
 
 steps:
-- pwsh: |
-    [string]$latestTag=iex 'git describe --tags --abbrev=0'
-    [string]$version="v$latestTag.$(BUILD.BUILDNUMBER)"
-    Write-Host 'BUILD_PR=$(SYSTEM.PULLREQUEST.PULLREQUESTNUMBER) BUILD_ID=$(BUILD.BUILDNUMBER)'
-    Write-Host "##vso[task.setvariable variable=releaseTag]$latestTag"
-    Write-Host "##vso[build.updatebuildnumber]$version"
-  displayName: "Set buld task name"
+  - pwsh: |
+      [string]$latestTag=iex 'git describe --tags --abbrev=0'
+      [string]$version="v$latestTag.$(BUILD.BUILDNUMBER)"
+      Write-Host 'BUILD_PR=$(SYSTEM.PULLREQUEST.PULLREQUESTNUMBER) BUILD_ID=$(BUILD.BUILDNUMBER)'
+      Write-Host "##vso[task.setvariable variable=releaseTag]$latestTag"
+      Write-Host "##vso[build.updatebuildnumber]$version"
+    displayName: "Set buld task name"
 
-- template: ci/templates/build-and-package.yml
+  - template: ci/templates/build-and-package.yml
