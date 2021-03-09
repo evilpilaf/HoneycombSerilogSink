@@ -33,6 +33,7 @@ namespace Honeycomb.Serilog.Sink.Formatters
             output.Write($"{{\"time\":\"{logEvent.Timestamp:O}\",");
             output.Write("\"data\":{");
             output.Write($"\"level\":\"{logEvent.Level}\"");
+            output.Write(",\"meta.annotation_type\":\"span_event\"");
             output.Write(",\"messageTemplate\":");
             JsonValueFormatter.WriteQuotedJsonString(logEvent.MessageTemplate.Text, output);
             if (logEvent.Exception != null)
@@ -63,12 +64,30 @@ namespace Honeycomb.Serilog.Sink.Formatters
                         continue;
                     }
                 }
+                if (property.Key.Equals("TraceId", StringComparison.OrdinalIgnoreCase))
+                {
+                    output.Write(precedingDelimiter);
 
-                output.Write(precedingDelimiter);
+                    JsonValueFormatter.WriteQuotedJsonString("trace.trace_id", output);
+                    output.Write(':');
+                    ValueFormatter.Format(property.Value, output);
+                }
+                else if (property.Key.Equals("ParentId", StringComparison.OrdinalIgnoreCase))
+                {
+                    output.Write(precedingDelimiter);
 
-                JsonValueFormatter.WriteQuotedJsonString(property.Key, output);
-                output.Write(':');
-                ValueFormatter.Format(property.Value, output);
+                    JsonValueFormatter.WriteQuotedJsonString("trace.parent_id", output);
+                    output.Write(':');
+                    ValueFormatter.Format(property.Value, output);
+                }
+                else
+                {
+                    output.Write(precedingDelimiter);
+
+                    JsonValueFormatter.WriteQuotedJsonString(property.Key, output);
+                    output.Write(':');
+                    ValueFormatter.Format(property.Value, output);
+                }
             }
         }
     }

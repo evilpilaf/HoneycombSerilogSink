@@ -224,6 +224,80 @@ namespace Honeycomb.Serilog.Sink.Tests
             }
         }
 
+        [Fact]
+        public async Task Emit_GivenAMessageWithTraceId_WritesItAsOTELStandard()
+        {
+            const string dataset = nameof(dataset);
+            const string apiKey = nameof(apiKey);
+
+            HttpClientStub clientStub = A.HttpClient();
+
+            var sut = CreateSut(dataset, apiKey, clientStub);
+
+            var level = LogEventLevel.Information;
+
+            var property = 1;
+            const string spanId = nameof(spanId);
+
+            var messageTemplateString = $"Testing message property {{{nameof(property)}}} {{TraceId}}";
+
+            var eventToSend = Some.LogEvent(level, messageTemplateString, property, spanId);
+            
+
+            await sut.EmitTestable(eventToSend);
+
+            var requestContent = clientStub.RequestContent;
+            using (var document = JsonDocument.Parse(requestContent))
+            using (new AssertionScope())
+            {
+                document.RootElement.ValueKind.Should().Be(JsonValueKind.Array);
+                document.RootElement.GetArrayLength().Should().Be(1);
+                JsonElement sentEvent = document.RootElement.EnumerateArray().Single();
+
+                sentEvent.GetProperty("time").GetDateTimeOffset().Should().Be(eventToSend.Timestamp);
+                sentEvent.GetProperty("data").ValueKind.Should().Be(JsonValueKind.Object);
+                sentEvent.GetProperty("data").GetProperty("trace.trace_id").ValueKind.Should().Be(JsonValueKind.String);
+                sentEvent.GetProperty("data").GetProperty("trace.trace_id").GetString().Should().Be(spanId);
+            }
+        }
+
+        [Fact]
+        public async Task Emit_GivenAMessageWithParentId_WritesItAsOTELStandard()
+        {
+            const string dataset = nameof(dataset);
+            const string apiKey = nameof(apiKey);
+
+            HttpClientStub clientStub = A.HttpClient();
+
+            var sut = CreateSut(dataset, apiKey, clientStub);
+
+            var level = LogEventLevel.Information;
+
+            var property = 1;
+            const string parentId = nameof(parentId);
+
+            var messageTemplateString = $"Testing message property {{{nameof(property)}}} {{ParentId}}";
+
+            var eventToSend = Some.LogEvent(level, messageTemplateString, property, parentId);
+            
+
+            await sut.EmitTestable(eventToSend);
+
+            var requestContent = clientStub.RequestContent;
+            using (var document = JsonDocument.Parse(requestContent))
+            using (new AssertionScope())
+            {
+                document.RootElement.ValueKind.Should().Be(JsonValueKind.Array);
+                document.RootElement.GetArrayLength().Should().Be(1);
+                JsonElement sentEvent = document.RootElement.EnumerateArray().Single();
+
+                sentEvent.GetProperty("time").GetDateTimeOffset().Should().Be(eventToSend.Timestamp);
+                sentEvent.GetProperty("data").ValueKind.Should().Be(JsonValueKind.Object);
+                sentEvent.GetProperty("data").GetProperty("trace.parent_id").ValueKind.Should().Be(JsonValueKind.String);
+                sentEvent.GetProperty("data").GetProperty("trace.parent_id").GetString().Should().Be(parentId);
+            }
+        }
+
         private HoneycombSerilogSinkStub CreateSut(string dataset, string apiKey, HttpClient client = null)
         {
             return new HoneycombSerilogSinkStub(client, dataset, apiKey);

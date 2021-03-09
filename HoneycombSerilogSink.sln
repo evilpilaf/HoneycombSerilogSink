@@ -24,6 +24,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{87AFA633-E
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Honeycomb.Serilog.Sink.Tests", "test\Honeycomb.Serilog.Sink.Tests\Honeycomb.Serilog.Sink.Tests.csproj", "{3153A916-94B4-418D-84BD-EB1649449CFF}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ci", "ci", "{F33664C2-6205-4DB6-B00F-0C18887E8272}"
+ProjectSection(SolutionItems) = preProject
+	ci\templates\build-and-package.yml = ci\templates\build-and-package.yml
+EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
