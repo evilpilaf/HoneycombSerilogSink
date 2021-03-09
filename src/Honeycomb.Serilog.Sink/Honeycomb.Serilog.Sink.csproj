@@ -65,13 +65,16 @@
       <PackageVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch)-pr.$(BUILD_PR)</PackageVersion>
       <PackageVersion Condition="'$(MinVerPreRelease)' != ''">$(PackageVersion).$(MinVerPreRelease)</PackageVersion>
       <PackageVersion Condition="'$(MinVerBuildMetadata)' != ''">$(PackageVersion)+$(MinVerBuildMetadata)</PackageVersion>
+      <FileVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(BUILD_ID)</FileVersion>
       <Version>$(PackageVersion)</Version>
     </PropertyGroup>
   </Target>
 
-  <Target Name="ComputeFileVersion" AfterTargets="MinVer">
+  <Target Name="SetVersion" AfterTargets="MinVer">
     <PropertyGroup>
       <BUILD_ID Condition="'$(BUILD_ID)' == ''">0</BUILD_ID>
+      <Version>$(PackageVersion)</Version>
+      <AssemblyVersion>$(MinVerMajor).0.0.0</AssemblyVersion>
       <FileVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(BUILD_ID)</FileVersion>
     </PropertyGroup>
   </Target>
