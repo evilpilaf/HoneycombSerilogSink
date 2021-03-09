@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -28,12 +29,15 @@ namespace Honeycomb.Serilog.Sink
 
         protected virtual HttpClient Client => BuildHttpClient();
 #else
-        private static readonly Lazy<HttpClient> _clientBuilder = new Lazy<HttpClient>(BuildHttpClient);
+        private static readonly Lazy<HttpClient> _clientBuilder = new(BuildHttpClient);
         protected virtual HttpClient Client => _clientBuilder.Value;
 #endif
         private readonly string _apiKey;
         private readonly string _teamId;
-        private static readonly Uri _honeycombApiUrl = new Uri(HoneycombBaseUri);
+        private static readonly Uri _honeycombApiUrl = new(HoneycombBaseUri);
+
+        private static readonly string LibraryVersion = typeof(HoneycombSerilogSink).Assembly.GetName().Version.ToString();
+        private static readonly string LibraryName = typeof(HoneycombSerilogSink).Assembly.GetName().Name;
 
         private const string JsonContentType = "application/json";
         private const string HoneycombBaseUri = "https://api.honeycomb.io/";
@@ -111,6 +115,8 @@ namespace Honeycomb.Serilog.Sink
             var eventSeparator = "";
             foreach (var evnt in logEvents)
             {
+                evnt.AddPropertyIfAbsent(new LogEventProperty("library.name", new ScalarValue(LibraryName)));
+                evnt.AddPropertyIfAbsent(new LogEventProperty("library.version", new ScalarValue(LibraryVersion)));
                 payload.Write(eventSeparator);
                 eventSeparator = ",";
                 RawJsonFormatter.FormatContent(evnt, payload);

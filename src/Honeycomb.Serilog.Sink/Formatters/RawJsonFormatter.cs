@@ -11,7 +11,7 @@ namespace Honeycomb.Serilog.Sink.Formatters
 {
     internal class RawJsonFormatter : ITextFormatter
     {
-        private static readonly JsonValueFormatter ValueFormatter = new JsonValueFormatter();
+        private static readonly JsonValueFormatter ValueFormatter = new();
 
         public void Format(LogEvent logEvent, TextWriter output)
         {
@@ -77,6 +77,14 @@ namespace Honeycomb.Serilog.Sink.Formatters
                     output.Write(precedingDelimiter);
 
                     JsonValueFormatter.WriteQuotedJsonString("trace.parent_id", output);
+                    output.Write(':');
+                    ValueFormatter.Format(property.Value, output);
+                }
+                else if (property.Key.Equals("SpanId", StringComparison.OrdinalIgnoreCase))
+                {
+                    output.Write(precedingDelimiter);
+
+                    JsonValueFormatter.WriteQuotedJsonString("trace.span_id", output);
                     output.Write(':');
                     ValueFormatter.Format(property.Value, output);
                 }
