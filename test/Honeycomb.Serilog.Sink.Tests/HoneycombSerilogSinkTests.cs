@@ -242,7 +242,7 @@ namespace Honeycomb.Serilog.Sink.Tests
             var messageTemplateString = $"Testing message property {{{nameof(property)}}} {{TraceId}}";
 
             var eventToSend = Some.LogEvent(level, messageTemplateString, property, spanId);
-            
+
 
             await sut.EmitTestable(eventToSend);
 
@@ -276,10 +276,10 @@ namespace Honeycomb.Serilog.Sink.Tests
             var property = 1;
             const string parentId = nameof(parentId);
 
-            var messageTemplateString = $"Testing message property {{{nameof(property)}}} {{ParentId}}";
+            var messageTemplateString = $"Testing message property {{{nameof(property)}}} {{SpanId}}";
 
             var eventToSend = Some.LogEvent(level, messageTemplateString, property, parentId);
-            
+
 
             await sut.EmitTestable(eventToSend);
 

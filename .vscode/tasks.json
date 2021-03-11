@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/src/Honeycomb.Serilog.Sink/Honeycomb.Serilog.Sink.csproj",
+                "${workspaceFolder}/test/Honeycomb.Serilog.Sink.Tests/Honeycomb.Serilog.Sink.Tests.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -19,7 +19,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/src/Honeycomb.Serilog.Sink/Honeycomb.Serilog.Sink.csproj",
+                "${workspaceFolder}/test/Honeycomb.Serilog.Sink.Tests/Honeycomb.Serilog.Sink.Tests.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -32,7 +32,7 @@
             "args": [
                 "watch",
                 "run",
-                "${workspaceFolder}/src/Honeycomb.Serilog.Sink/Honeycomb.Serilog.Sink.csproj",
+                "${workspaceFolder}/test/Honeycomb.Serilog.Sink.Tests/Honeycomb.Serilog.Sink.Tests.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],

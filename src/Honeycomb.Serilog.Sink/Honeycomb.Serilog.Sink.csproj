@@ -1,19 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net461;netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks Condition="$(IsWindows) == true">$TargetFrameworks;net461</TargetFrameworks>
     <Title>Honeycomb Serilog sink</Title>
-    <Authors>evilpilaf</Authors>
     <PackageTags>Honeycomb Serilog Sink Observability Logging Monitoring</PackageTags>
     <RepositoryUrl>https://github.com/evilpilaf/HoneycombSerilogSink/</RepositoryUrl>
     <Description>A sink for pushing Serilog structured log events into a Honeycomb instance.</Description>
-    <Copyright>evilpilaf © $([System.DateTime]::Now.Year)</Copyright>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageLicenseFile>LICENSE.TXT</PackageLicenseFile>
-    <LangVersion>latest</LangVersion>
-    <Nullable>enable</Nullable>
-    <Deterministic>true</Deterministic>
-    <ContinuousIntegrationBuild Condition="'$(TF_BUILD)' != ''">true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
   <!-- SourceLink -->
