@@ -14,7 +14,7 @@ namespace Honeycomb.Serilog.Sink.Formatters
         private static readonly JsonValueFormatter ValueFormatter = new();
         private static readonly IReadOnlyDictionary<string, string> PropertyTransforms = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            {"ParentId", "trace.parent_id"},
+            {"SpanId", "trace.parent_id"},
             {"TraceId", "trace.trace_id"}
         };
 
