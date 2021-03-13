@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 using Serilog.Events;
@@ -9,10 +10,10 @@ namespace Honeycomb.Serilog.Sink.Tests
     {
         private readonly HttpClient _client;
 
-        public HoneycombSerilogSinkStub(HttpClient client, string dataset, string apiKey)
+        public HoneycombSerilogSinkStub(HttpClient? client, string dataset, string apiKey)
             : base(dataset, apiKey)
         {
-            _client = client;
+            _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
         protected override HttpClient Client => _client;

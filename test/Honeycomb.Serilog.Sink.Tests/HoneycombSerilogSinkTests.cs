@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
@@ -124,7 +125,7 @@ namespace Honeycomb.Serilog.Sink.Tests
             var level = LogEventLevel.Fatal;
 
             var messageTempalteString = "Testing message {message}";
-            var ex = new Exception("TestException");
+            var ex = new TestException("TestException");
 
             var eventToSend = Some.LogEvent(level, ex, messageTempalteString);
 
@@ -143,8 +144,10 @@ namespace Honeycomb.Serilog.Sink.Tests
                 JsonElement data = sentEvent.GetProperty("data");
 
                 data.GetProperty("level").GetString().Should().Be(level.ToString());
-                data.GetProperty("messageTemplate").GetString().Should().Be(messageTempalteString);
-                data.GetProperty("exception").GetString().Should().Be(ex.ToString());
+                data.GetProperty("exception.type").GetString().Should().Be(ex.GetType().ToString());
+                data.GetProperty("exception.message").GetString().Should().Be(ex.ToStringDemystified());
+                data.GetProperty("exception.stacktrace").GetString().Should().Be(ex.StackTrace);
+
             }
         }
 
@@ -280,7 +283,6 @@ namespace Honeycomb.Serilog.Sink.Tests
 
             var eventToSend = Some.LogEvent(level, messageTemplateString, property, parentId);
 
-
             await sut.EmitTestable(eventToSend);
 
             var requestContent = clientStub.RequestContent;
@@ -298,9 +300,18 @@ namespace Honeycomb.Serilog.Sink.Tests
             }
         }
 
-        private HoneycombSerilogSinkStub CreateSut(string dataset, string apiKey, HttpClient client = null)
+        private static HoneycombSerilogSinkStub CreateSut(string dataset, string apiKey, HttpClient? client = null)
         {
             return new HoneycombSerilogSinkStub(client, dataset, apiKey);
         }
+    }
+
+    internal class TestException : Exception
+    {
+        public TestException(string message) : base(message)
+        {
+        }
+
+        public override string StackTrace => nameof(StackTrace);
     }
 }

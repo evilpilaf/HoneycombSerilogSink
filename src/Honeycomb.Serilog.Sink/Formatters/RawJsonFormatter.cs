@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -46,7 +47,7 @@ namespace Honeycomb.Serilog.Sink.Formatters
                 output.Write(",\"exception.type\":");
                 JsonValueFormatter.WriteQuotedJsonString(logEvent.Exception.GetType().ToString(), output);
                 output.Write(",\"exception.message\":");
-                JsonValueFormatter.WriteQuotedJsonString(logEvent.Exception.ToString(), output);
+                JsonValueFormatter.WriteQuotedJsonString(logEvent.Exception.ToStringDemystified(), output);
                 output.Write(",\"exception.stacktrace\":");
                 JsonValueFormatter.WriteQuotedJsonString(logEvent.Exception.StackTrace, output);
             }
