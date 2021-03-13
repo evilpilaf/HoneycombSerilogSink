@@ -1,4 +1,4 @@
-namespace Serilog.Enricher.ActivityEnricher
+namespace Honeycomb.Serilog.Sink.Enricher
 {
     using System.Diagnostics;
 

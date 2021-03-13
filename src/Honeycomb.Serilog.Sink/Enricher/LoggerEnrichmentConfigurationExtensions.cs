@@ -1,9 +1,9 @@
-namespace Serilog.Enricher.ActivityEnricher
+using System;
+using Serilog;
+using Serilog.Configuration;
+
+namespace Honeycomb.Serilog.Sink.Enricher
 {
-    using System;
-    using Serilog.Configuration;
-
-
     /// <summary>
     /// <see cref="LoggerEnrichmentConfiguration"/> extension methods.
     /// </summary>

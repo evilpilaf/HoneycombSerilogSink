@@ -1,9 +1,9 @@
-namespace Serilog.Enricher.ActivityEnricher
-{
-    using System.Diagnostics;
-    using Serilog.Core;
-    using Serilog.Events;
+using System.Diagnostics;
+using Serilog.Core;
+using Serilog.Events;
 
+namespace Honeycomb.Serilog.Sink.Enricher
+{
     public class ActivityEnricher : ILogEventEnricher
     {
         /// <inheritdoc/>

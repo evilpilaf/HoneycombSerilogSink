@@ -1,5 +1,5 @@
 using System;
-
+using Honeycomb.Serilog.Sink.Enricher;
 using Serilog;
 using Serilog.Configuration;
 using Serilog.Sinks.PeriodicBatching;
@@ -25,8 +25,7 @@ namespace Honeycomb.Serilog.Sink
                 BatchSizeLimit = batchSizeLimit,
                 Period = period
             };
-
-            return loggerConfiguration.HoneycombSink(dataset, apiKey, batchingOptions);
+            return loggerConfiguration.HoneycombSink(dataset, apiKey, batchingOptions).Enrich.WithActivity();
         }
 
         public static LoggerConfiguration HoneycombSink(this LoggerSinkConfiguration loggerConfiguration,
@@ -38,7 +37,7 @@ namespace Honeycomb.Serilog.Sink
 
             var batchingSink = new PeriodicBatchingSink(honeycombSink, batchingOptions ?? new PeriodicBatchingSinkOptions());
 
-            return loggerConfiguration.Sink(batchingSink);
+            return loggerConfiguration.Sink(batchingSink).Enrich.WithActivity();
         }
     }
 }
