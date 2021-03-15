@@ -17,24 +17,29 @@ namespace Honeycomb.Serilog.Sink
     internal class HoneycombSerilogSink : IBatchedLogEventSink, IDisposable
     {
 #if NETCOREAPP
-        private static SocketsHttpHandler? _socketsHttpHandler;
-
-        private static SocketsHttpHandler SocketsHttpHandler
-        {
-            get
-            {
-                return _socketsHttpHandler ??= new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(30) };
-            }
-        }
+        private static Lazy<SocketsHttpHandler> _socketsHttpHandler
+            = new(() => new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(30) });
 
         protected virtual HttpClient Client => BuildHttpClient();
 #else
         private static readonly Lazy<HttpClient> _clientBuilder = new(BuildHttpClient);
         protected virtual HttpClient Client => _clientBuilder.Value;
 #endif
+
+        private readonly Func<HttpClient> _httpClientFactory = () =>
+        {
+            HttpClient client;
+#if NETCOREAPP
+            client = new HttpClient(_socketsHttpHandler.Value, disposeHandler: false);
+#else
+            client = new HttpClient();
+#endif
+            return client;
+        };
+
         private readonly string _apiKey;
         private readonly string _teamId;
-        private static readonly Uri _honeycombApiUrl = new(HoneycombBaseUri);
+        private readonly Uri _honeycombApiUrl;
 
         private static readonly string LibraryVersion = typeof(HoneycombSerilogSink).Assembly.GetName().Version.ToString();
         private static readonly string LibraryName = typeof(HoneycombSerilogSink).Assembly.GetName().Name;
@@ -48,10 +53,30 @@ namespace Honeycomb.Serilog.Sink
 
         /// <param name="dataset">The name of the dataset where to send the events to</param>
         /// <param name="apiKey">The API key given in the Honeycomb ui</param>
-        public HoneycombSerilogSink(string dataset, string apiKey)
+        /// <param name="honeycombUrl">The URL where to send the events. Default https://api.honeycomb.io</param>
+        public HoneycombSerilogSink(string? dataset, string? apiKey, Func<HttpClient>? httpClientFactory = null, string? honeycombUrl = HoneycombBaseUri)
         {
-            _teamId = string.IsNullOrWhiteSpace(dataset) ? throw new ArgumentNullException(nameof(dataset)) : dataset;
-            _apiKey = string.IsNullOrWhiteSpace(apiKey) ? throw new ArgumentNullException(nameof(apiKey)) : apiKey;
+            if (dataset is not null && !string.IsNullOrWhiteSpace(dataset))
+            {
+                _teamId = dataset;
+            }
+            else
+            {
+                throw new ArgumentNullException(nameof(dataset));
+            }
+            if (apiKey is not null && !string.IsNullOrWhiteSpace(apiKey))
+            {
+                _apiKey = dataset;
+            }
+            else
+            {
+                throw new ArgumentNullException(nameof(apiKey));
+            }
+            if (httpClientFactory is not null)
+            {
+                _httpClientFactory = httpClientFactory;
+            }
+            _honeycombApiUrl = new Uri(honeycombUrl);
         }
 
         public async Task EmitBatchAsync(IEnumerable<LogEvent> events)
@@ -124,14 +149,10 @@ namespace Honeycomb.Serilog.Sink
             payload.Write("]");
         }
 
-        private static HttpClient BuildHttpClient()
+        private HttpClient BuildHttpClient()
         {
-            HttpClient client;
-#if NETCOREAPP
-            client = new HttpClient(SocketsHttpHandler, disposeHandler: false);
-#else
-            client = new HttpClient();
-#endif
+            var client = _httpClientFactory();
+
             client.BaseAddress = _honeycombApiUrl;
 
             return client;
