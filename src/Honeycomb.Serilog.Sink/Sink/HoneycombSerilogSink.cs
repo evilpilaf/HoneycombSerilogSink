@@ -44,7 +44,7 @@ namespace Honeycomb.Serilog.Sink.Sink
         /// <param name="apiKey">The API key given in the Honeycomb ui</param>
         /// <param name="httpClientFactory">A builder to aid in creating the HttpClient</param>
         /// <param name="honeycombUrl">The URL where to send the events. Default https://api.honeycomb.io</param>
-        public HoneycombSerilogSink(string? dataset, string? apiKey, Func<HttpClient>? httpClientFactory = null, string honeycombUrl = DefaultHoneycombUri)
+        public HoneycombSerilogSink(string? dataset, string? apiKey, Func<HttpClient>? httpClientFactory = null, string? honeycombUrl = DefaultHoneycombUri)
         {
             if (dataset is not null && !string.IsNullOrWhiteSpace(dataset))
             {
@@ -66,7 +66,7 @@ namespace Honeycomb.Serilog.Sink.Sink
             {
                 _httpClientFactory = httpClientFactory;
             }
-            _honeycombApiUrl = new Uri(honeycombUrl);
+            _honeycombApiUrl = new Uri(honeycombUrl ?? DefaultHoneycombUri);
         }
 
         public async Task EmitBatchAsync(IEnumerable<LogEvent> events)
