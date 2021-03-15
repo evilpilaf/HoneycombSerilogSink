@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -11,7 +12,7 @@ namespace Honeycomb.Serilog.Sink.Formatters
 {
     internal class RawJsonFormatter : ITextFormatter
     {
-        private static readonly JsonValueFormatter ValueFormatter = new JsonValueFormatter();
+        private static readonly JsonValueFormatter ValueFormatter = new();
 
         public void Format(LogEvent logEvent, TextWriter output)
         {
@@ -33,12 +34,17 @@ namespace Honeycomb.Serilog.Sink.Formatters
             output.Write($"{{\"time\":\"{logEvent.Timestamp:O}\",");
             output.Write("\"data\":{");
             output.Write($"\"level\":\"{logEvent.Level}\"");
+            output.Write(",\"meta.annotation_type\":\"span_event\"");
             output.Write(",\"messageTemplate\":");
             JsonValueFormatter.WriteQuotedJsonString(logEvent.MessageTemplate.Text, output);
             if (logEvent.Exception != null)
             {
-                output.Write(",\"exception\":");
-                JsonValueFormatter.WriteQuotedJsonString(logEvent.Exception.ToString(), output);
+                output.Write(",\"exception.type\":");
+                JsonValueFormatter.WriteQuotedJsonString(logEvent.Exception.GetType().ToString(), output);
+                output.Write(",\"exception.message\":");
+                JsonValueFormatter.WriteQuotedJsonString(logEvent.Exception.ToStringDemystified(), output);
+                output.Write(",\"exception.stacktrace\":");
+                JsonValueFormatter.WriteQuotedJsonString(logEvent.Exception.StackTrace, output);
             }
 
             if (logEvent.Properties.Any())
@@ -63,7 +69,6 @@ namespace Honeycomb.Serilog.Sink.Formatters
                         continue;
                     }
                 }
-
                 output.Write(precedingDelimiter);
 
                 JsonValueFormatter.WriteQuotedJsonString(property.Key, output);

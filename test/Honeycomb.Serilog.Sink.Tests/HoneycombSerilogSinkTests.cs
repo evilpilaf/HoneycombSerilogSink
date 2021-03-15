@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
@@ -25,7 +26,9 @@ namespace Honeycomb.Serilog.Sink.Tests
         public void Create_WhenInvalidTeamIdIsProvided_ThrowsArgumentException(string dataset)
         {
             const string apiKey = nameof(apiKey);
-            Action action = () => CreateSut(dataset, apiKey);
+            HttpClientStub clientStub = A.HttpClient();
+
+            Action action = () => CreateSut(dataset, apiKey, clientStub);
 
             action.Should().Throw<ArgumentNullException>()
                   .Which.Message.Should().Contain(nameof(dataset));
@@ -37,7 +40,9 @@ namespace Honeycomb.Serilog.Sink.Tests
         public void Create_WhenInvalidApiKeyIsProvided_ThrowsArgumentException(string apiKey)
         {
             const string dataset = nameof(dataset);
-            Action action = () => CreateSut(dataset, apiKey);
+            HttpClientStub clientStub = A.HttpClient();
+
+            Action action = () => CreateSut(dataset, apiKey, clientStub);
 
             action.Should().Throw<ArgumentNullException>()
                   .Which.Message.Should().Contain(nameof(apiKey));
@@ -55,8 +60,44 @@ namespace Honeycomb.Serilog.Sink.Tests
 
             await sut.EmitTestable(new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate("", Enumerable.Empty<MessageTemplateToken>()), Enumerable.Empty<LogEventProperty>()));
 
-            clientStub.RequestSubmitted.Headers.Should().ContainSingle(h => h.Key == "X-Honeycomb-Team");
+            clientStub.RequestSubmitted.Should().NotBeNull();
+            clientStub.RequestSubmitted!.Headers.Should().ContainSingle(h => h.Key == "X-Honeycomb-Team");
             clientStub.RequestSubmitted.Headers.GetValues("X-Honeycomb-Team").Should().ContainSingle().Which.Should().Be(apiKey);
+        }
+
+        [Fact]
+        public async Task Emit_WhenNoCustomSinkUriIsSet_UsesDefaultUri()
+        {
+            const string dataset = nameof(dataset);
+            const string apiKey = nameof(apiKey);
+
+            HttpClientStub clientStub = A.HttpClient();
+
+            var sut = CreateSut(dataset, apiKey, clientStub);
+
+            await sut.EmitTestable(new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate("", Enumerable.Empty<MessageTemplateToken>()), Enumerable.Empty<LogEventProperty>()));
+
+            clientStub.RequestSubmitted.Should().NotBeNull();
+            clientStub.RequestSubmitted!.RequestUri.Host.Should().Be("api.honeycomb.io");
+            clientStub.RequestSubmitted!.RequestUri.Scheme.Should().Be("https");
+        }
+
+        [Fact]
+        public async Task Emit_WhenCustomSinkUriIsSet_UsesCustomUri()
+        {
+            const string dataset = nameof(dataset);
+            const string apiKey = nameof(apiKey);
+            var customUri = new UriBuilder("https", "dummyhost");
+
+            HttpClientStub clientStub = A.HttpClient();
+
+            var sut = CreateSut(dataset, apiKey, clientStub, customUri.ToString());
+
+            await sut.EmitTestable(new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate("", Enumerable.Empty<MessageTemplateToken>()), Enumerable.Empty<LogEventProperty>()));
+
+            clientStub.RequestSubmitted.Should().NotBeNull();
+            clientStub.RequestSubmitted!.RequestUri.Scheme.Should().Be(customUri.Scheme);
+            clientStub.RequestSubmitted!.RequestUri.Host.Should().Be(customUri.Host);
         }
 
         [Fact]
@@ -71,7 +112,34 @@ namespace Honeycomb.Serilog.Sink.Tests
 
             await sut.EmitTestable(new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate("", Enumerable.Empty<MessageTemplateToken>()), Enumerable.Empty<LogEventProperty>()));
 
-            clientStub.RequestSubmitted.RequestUri.ToString().Should().EndWith(dataset);
+            clientStub.RequestSubmitted.Should().NotBeNull();
+            clientStub.RequestSubmitted!.RequestUri.ToString().Should().EndWith(dataset);
+        }
+
+        [Fact]
+        public async Task Emit_AlwaysSetsMetaAnnotationType_As_SpanEvent()
+        {
+            const string dataset = nameof(dataset);
+            const string apiKey = nameof(apiKey);
+
+            HttpClientStub clientStub = A.HttpClient();
+
+            var sut = CreateSut(dataset, apiKey, clientStub);
+
+            await sut.EmitTestable(new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null,
+                new MessageTemplate("", Enumerable.Empty<MessageTemplateToken>()),
+                Enumerable.Empty<LogEventProperty>()));
+
+            var requestContent = clientStub.RequestContent!;
+            using (var document = JsonDocument.Parse(requestContent))
+            using (new AssertionScope())
+            {
+                JsonElement sentEvent = document.RootElement.EnumerateArray().Single();
+                JsonElement data = sentEvent.GetProperty("data");
+
+                data.GetProperty("meta.annotation_type").Should().NotBeNull();
+                data.GetProperty("meta.annotation_type").GetString().Should().Be("span_event");
+            }
         }
 
         [Fact]
@@ -84,15 +152,15 @@ namespace Honeycomb.Serilog.Sink.Tests
 
             var sut = CreateSut(dataset, apiKey, clientStub);
 
-            var level = LogEventLevel.Fatal;
+            const LogEventLevel level = LogEventLevel.Fatal;
 
-            var messageTempalteString = "Testing message {message}";
+            const string? messageTemplateString = "Testing message {message}";
 
-            var eventToSend = Some.LogEvent(level, messageTempalteString);
+            var eventToSend = Some.LogEvent(level, messageTemplateString);
 
             await sut.EmitTestable(eventToSend);
 
-            var requestContent = clientStub.RequestContent;
+            var requestContent = clientStub.RequestContent!;
             using (var document = JsonDocument.Parse(requestContent))
             using (new AssertionScope())
             {
@@ -105,7 +173,7 @@ namespace Honeycomb.Serilog.Sink.Tests
 
                 JsonElement data = sentEvent.GetProperty("data");
                 data.GetProperty("level").GetString().Should().Be(level.ToString());
-                data.GetProperty("messageTemplate").GetString().Should().Be(messageTempalteString);
+                data.GetProperty("messageTemplate").GetString().Should().Be(messageTemplateString);
                 data.TryGetProperty("exception", out var ex);
                 ex.ValueKind.Should().Be(JsonValueKind.Undefined);
             }
@@ -123,14 +191,14 @@ namespace Honeycomb.Serilog.Sink.Tests
 
             var level = LogEventLevel.Fatal;
 
-            var messageTempalteString = "Testing message {message}";
-            var ex = new Exception("TestException");
+            var messageTemplateString = "Testing message {message}";
+            var ex = new TestException("TestException");
 
-            var eventToSend = Some.LogEvent(level, ex, messageTempalteString);
+            var eventToSend = Some.LogEvent(level, ex, messageTemplateString);
 
             await sut.EmitTestable(eventToSend);
 
-            var requestContent = clientStub.RequestContent;
+            var requestContent = clientStub.RequestContent!;
             using (var document = JsonDocument.Parse(requestContent))
             using (new AssertionScope())
             {
@@ -143,8 +211,10 @@ namespace Honeycomb.Serilog.Sink.Tests
                 JsonElement data = sentEvent.GetProperty("data");
 
                 data.GetProperty("level").GetString().Should().Be(level.ToString());
-                data.GetProperty("messageTemplate").GetString().Should().Be(messageTempalteString);
-                data.GetProperty("exception").GetString().Should().Be(ex.ToString());
+                data.GetProperty("exception.type").GetString().Should().Be(ex.GetType().ToString());
+                data.GetProperty("exception.message").GetString().Should().Be(ex.ToStringDemystified());
+                data.GetProperty("exception.stacktrace").GetString().Should().Be(ex.StackTrace);
+
             }
         }
 
@@ -162,13 +232,13 @@ namespace Honeycomb.Serilog.Sink.Tests
 
             const string property = nameof(property);
 
-            var messageTempalteString = $"Testing message property {{{nameof(property)}}}";
+            var messageTemplateString = $"Testing message property {{{nameof(property)}}}";
 
-            var eventToSend = Some.LogEvent(level, messageTempalteString, property);
+            var eventToSend = Some.LogEvent(level, messageTemplateString, property);
 
             await sut.EmitTestable(eventToSend);
 
-            var requestContent = clientStub.RequestContent;
+            var requestContent = clientStub.RequestContent!;
             using (var document = JsonDocument.Parse(requestContent))
             using (new AssertionScope())
             {
@@ -205,7 +275,7 @@ namespace Honeycomb.Serilog.Sink.Tests
 
             await sut.EmitTestable(eventToSend);
 
-            var requestContent = clientStub.RequestContent;
+            var requestContent = clientStub.RequestContent!;
             using (var document = JsonDocument.Parse(requestContent))
             using (new AssertionScope())
             {
@@ -224,9 +294,19 @@ namespace Honeycomb.Serilog.Sink.Tests
             }
         }
 
-        private HoneycombSerilogSinkStub CreateSut(string dataset, string apiKey, HttpClient client = null)
+        private static HoneycombSerilogSinkStub CreateSut(string dataset, string apiKey, HttpClient client)
+            => new(client, dataset, apiKey);
+
+        private static HoneycombSerilogSinkStub CreateSut(string dataset, string apiKey, HttpClient client, string honeycombUrl)
+            => new(client, dataset, apiKey, honeycombUrl);
+    }
+
+    internal class TestException : Exception
+    {
+        public TestException(string message) : base(message)
         {
-            return new HoneycombSerilogSinkStub(client, dataset, apiKey);
         }
+
+        public override string StackTrace => nameof(StackTrace);
     }
 }

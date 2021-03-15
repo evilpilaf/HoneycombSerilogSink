@@ -1,5 +1,7 @@
-﻿using System.Net.Http;
+using System.Net.Http;
 using System.Threading.Tasks;
+
+using Honeycomb.Serilog.Sink.Sink;
 
 using Serilog.Events;
 
@@ -7,15 +9,13 @@ namespace Honeycomb.Serilog.Sink.Tests
 {
     internal class HoneycombSerilogSinkStub : HoneycombSerilogSink
     {
-        private readonly HttpClient _client;
-
         public HoneycombSerilogSinkStub(HttpClient client, string dataset, string apiKey)
-            : base(dataset, apiKey)
-        {
-            _client = client;
-        }
+            : base(dataset, apiKey, httpClientFactory: () => client)
+        { }
 
-        protected override HttpClient Client => _client;
+        public HoneycombSerilogSinkStub(HttpClient client, string dataset, string apiKey, string honeycombUrl)
+            : base(dataset, apiKey, httpClientFactory: () => client, honeycombUrl: honeycombUrl)
+        { }
 
         public Task EmitTestable(params LogEvent[] events)
         {

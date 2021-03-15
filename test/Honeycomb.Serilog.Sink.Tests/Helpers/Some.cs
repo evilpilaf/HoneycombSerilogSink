@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 using Serilog;
@@ -15,18 +15,16 @@ namespace Honeycomb.Serilog.Sink.Tests.Helpers
             return LogEvent(null, messageTemplate, propertyValues);
         }
 
-        public static LogEvent LogEvent(Exception exception, string messageTemplate, params object[] propertyValues)
+        public static LogEvent LogEvent(Exception? exception, string messageTemplate, params object[] propertyValues)
         {
             return LogEvent(LogEventLevel.Information, exception, messageTemplate, propertyValues);
         }
 
-        public static LogEvent LogEvent(LogEventLevel level, Exception exception, string messageTemplate, params object[] propertyValues)
+        public static LogEvent LogEvent(LogEventLevel level, Exception? exception, string messageTemplate, params object[] propertyValues)
         {
             var log = new LoggerConfiguration().CreateLogger();
-            MessageTemplate template;
-            IEnumerable<LogEventProperty> properties;
 #pragma warning disable Serilog004 // Constant MessageTemplate verifier
-            if (!log.BindMessageTemplate(messageTemplate, propertyValues, out template, out properties))
+            if (!log.BindMessageTemplate(messageTemplate, propertyValues, out MessageTemplate template, out IEnumerable<LogEventProperty> properties))
 #pragma warning restore Serilog004 // Constant MessageTemplate verifier
             {
                 throw new XunitException("Template could not be bound.");

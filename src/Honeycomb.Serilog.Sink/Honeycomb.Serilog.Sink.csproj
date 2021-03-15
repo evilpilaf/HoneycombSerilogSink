@@ -1,19 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net461;netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
     <Title>Honeycomb Serilog sink</Title>
-    <Authors>evilpilaf</Authors>
     <PackageTags>Honeycomb Serilog Sink Observability Logging Monitoring</PackageTags>
     <RepositoryUrl>https://github.com/evilpilaf/HoneycombSerilogSink/</RepositoryUrl>
     <Description>A sink for pushing Serilog structured log events into a Honeycomb instance.</Description>
-    <Copyright>evilpilaf © $([System.DateTime]::Now.Year)</Copyright>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageLicenseFile>LICENSE.TXT</PackageLicenseFile>
-    <LangVersion>latest</LangVersion>
-    <Nullable>enable</Nullable>
-    <Deterministic>true</Deterministic>
-    <ContinuousIntegrationBuild Condition="'$(TF_BUILD)' != ''">true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
   <!-- SourceLink -->
@@ -31,7 +22,6 @@
 
   <ItemGroup>
     <None Include="..\..\assets\icon124x124.png" Pack="true" PackagePath="" />
-    <None Include="..\..\LICENSE.TXT" Pack="true" PackagePath="$(PackageLicenseFile)" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1'">
@@ -47,13 +37,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MinVer" Version="2.4.0">
+    <PackageReference Include="Ben.Demystifier" Version="0.3.0" />
+    <PackageReference Include="MinVer" Version="2.5.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Serilog" Version="2.10.0" />
     <PackageReference Include="Serilog.Sinks.PeriodicBatching" Version="2.3.0" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="5.0.1" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net461' OR '$(TargetFramework)' == 'net462' OR '$(TargetFramework)' == 'net47'  OR '$(TargetFramework)' == 'net471' OR '$(TargetFramework)' == 'net472' OR '$(TargetFramework)' == 'net48' ">
@@ -65,13 +57,16 @@
       <PackageVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch)-pr.$(BUILD_PR)</PackageVersion>
       <PackageVersion Condition="'$(MinVerPreRelease)' != ''">$(PackageVersion).$(MinVerPreRelease)</PackageVersion>
       <PackageVersion Condition="'$(MinVerBuildMetadata)' != ''">$(PackageVersion)+$(MinVerBuildMetadata)</PackageVersion>
+      <FileVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(BUILD_ID)</FileVersion>
       <Version>$(PackageVersion)</Version>
     </PropertyGroup>
   </Target>
 
-  <Target Name="ComputeFileVersion" AfterTargets="MinVer">
+  <Target Name="SetVersion" AfterTargets="MinVer">
     <PropertyGroup>
       <BUILD_ID Condition="'$(BUILD_ID)' == ''">0</BUILD_ID>
+      <Version>$(PackageVersion)</Version>
+      <AssemblyVersion>$(MinVerMajor).0.0.0</AssemblyVersion>
       <FileVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(BUILD_ID)</FileVersion>
     </PropertyGroup>
   </Target>

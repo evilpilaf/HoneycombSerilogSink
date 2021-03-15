@@ -1,0 +1,18 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup Label="Build">
+    <TargetFrameworks>netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks Condition="$(IsWindows) == true">$(TargetFrameworks);net461</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Package">
+    <PackageTags>Honeycomb Serilog Sink Observability Logging Monitoring</PackageTags>
+    <Description>A sink for pushing Serilog structured log events into a Honeycomb instance.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../LICENSE.TXT" Pack="true" PackagePath="$(PackageLicenseFile)" />
+  </ItemGroup>
+
+</Project>

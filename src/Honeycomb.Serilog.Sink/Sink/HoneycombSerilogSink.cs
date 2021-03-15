@@ -11,32 +11,32 @@ using Serilog.Debugging;
 using Serilog.Events;
 using Serilog.Sinks.PeriodicBatching;
 
-namespace Honeycomb.Serilog.Sink
+namespace Honeycomb.Serilog.Sink.Sink
 {
     internal class HoneycombSerilogSink : IBatchedLogEventSink, IDisposable
     {
-#if NETCOREAPP
-        private static SocketsHttpHandler? _socketsHttpHandler;
-
-        private static SocketsHttpHandler SocketsHttpHandler
-        {
-            get
-            {
-                return _socketsHttpHandler ??= new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(30) };
-            }
-        }
-
-        protected virtual HttpClient Client => BuildHttpClient();
+        private static readonly Lazy<HttpMessageHandler> _messageHandler = new(() =>
+#if NETCOREAPP2_0_OR_GREATER
+        new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(30) }
 #else
-        private static readonly Lazy<HttpClient> _clientBuilder = new Lazy<HttpClient>(BuildHttpClient);
-        protected virtual HttpClient Client => _clientBuilder.Value;
+        new HttpClientHandler()
 #endif
+        );
+
+        private static readonly RawJsonFormatter _rawJsonFormatter = new RawJsonFormatter();
+
+        private readonly Func<HttpClient> _httpClientFactory
+            = () => new HttpClient(_messageHandler.Value, disposeHandler: false);
+
         private readonly string _apiKey;
         private readonly string _teamId;
-        private static readonly Uri _honeycombApiUrl = new Uri(HoneycombBaseUri);
+        private readonly Uri _honeycombApiUrl;
+
+        private static readonly string LibraryVersion = typeof(HoneycombSerilogSink).Assembly.GetName().Version?.ToString() ?? "1.0.0.0";
+        private static readonly string LibraryName = typeof(HoneycombSerilogSink).Assembly.GetName().Name ?? "Honeycomb.Serilog.Sink";
 
         private const string JsonContentType = "application/json";
-        private const string HoneycombBaseUri = "https://api.honeycomb.io/";
+        private const string DefaultHoneycombUri = "https://api.honeycomb.io/";
         private const string HoneycombBatchEndpointTemplate = "/1/batch/{0}";
         private const string HoneycombTeamIdHeaderName = "X-Honeycomb-Team";
 
@@ -44,36 +44,38 @@ namespace Honeycomb.Serilog.Sink
 
         /// <param name="dataset">The name of the dataset where to send the events to</param>
         /// <param name="apiKey">The API key given in the Honeycomb ui</param>
-        public HoneycombSerilogSink(string dataset, string apiKey)
+        /// <param name="httpClientFactory">A builder to aid in creating the HttpClient</param>
+        /// <param name="honeycombUrl">The URL where to send the events. Default https://api.honeycomb.io</param>
+        public HoneycombSerilogSink(string? dataset, string? apiKey, Func<HttpClient>? httpClientFactory = null, string? honeycombUrl = DefaultHoneycombUri)
         {
-            _teamId = string.IsNullOrWhiteSpace(dataset) ? throw new ArgumentNullException(nameof(dataset)) : dataset;
-            _apiKey = string.IsNullOrWhiteSpace(apiKey) ? throw new ArgumentNullException(nameof(apiKey)) : apiKey;
+            if (dataset is not null && !string.IsNullOrWhiteSpace(dataset))
+            {
+                _teamId = dataset;
+            }
+            else
+            {
+                throw new ArgumentNullException(nameof(dataset));
+            }
+            if (apiKey is not null && !string.IsNullOrWhiteSpace(apiKey))
+            {
+                _apiKey = apiKey;
+            }
+            else
+            {
+                throw new ArgumentNullException(nameof(apiKey));
+            }
+            if (httpClientFactory is not null)
+            {
+                _httpClientFactory = httpClientFactory;
+            }
+            _honeycombApiUrl = new Uri(honeycombUrl ?? DefaultHoneycombUri);
         }
 
         public async Task EmitBatchAsync(IEnumerable<LogEvent> events)
         {
             using TextWriter writer = new StringWriter();
             BuildLogEvent(events, writer);
-            await SendBatchedEvents(writer!.ToString()).ConfigureAwait(false);
-        }
-
-        private async Task SendBatchedEvents(Stream events)
-        {
-            using var requestMessage = new HttpRequestMessage(HttpMethod.Post, string.Format(HoneycombBatchEndpointTemplate, _teamId))
-            {
-                Content = new StreamContent(events),
-                Version = new Version(2, 0)
-            };
-
-            requestMessage.Headers.Add(HoneycombTeamIdHeaderName, _apiKey);
-            var response = await SendRequest(requestMessage).ConfigureAwait(false);
-            if (!response.IsSuccessStatusCode)
-            {
-                using Stream contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-                using var reader = new StreamReader(contentStream);
-                var responseContent = await reader.ReadToEndAsync().ConfigureAwait(false);
-                SelfLog.WriteLine(SelfLogMessageText, response.StatusCode, responseContent);
-            }
+            await SendBatchedEvents(writer.ToString()!).ConfigureAwait(false);
         }
 
         private async Task SendBatchedEvents(string events)
@@ -97,35 +99,29 @@ namespace Honeycomb.Serilog.Sink
 
         private async Task<HttpResponseMessage> SendRequest(HttpRequestMessage request)
         {
-#if NETCOREAPP
-            using var client = Client;
+            using var client = BuildHttpClient();
             return await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
-#else
-            return await Client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
-#endif
         }
 
         private static void BuildLogEvent(IEnumerable<LogEvent> logEvents, TextWriter payload)
         {
             payload.Write("[");
             var eventSeparator = "";
-            foreach (var evnt in logEvents)
+            foreach (var e in logEvents)
             {
+                e.AddPropertyIfAbsent(new LogEventProperty("library.name", new ScalarValue(LibraryName)));
+                e.AddPropertyIfAbsent(new LogEventProperty("library.version", new ScalarValue(LibraryVersion)));
                 payload.Write(eventSeparator);
                 eventSeparator = ",";
-                RawJsonFormatter.FormatContent(evnt, payload);
+                _rawJsonFormatter.Format(e, payload);
             }
             payload.Write("]");
         }
 
-        private static HttpClient BuildHttpClient()
+        private HttpClient BuildHttpClient()
         {
-            HttpClient client;
-#if NETCOREAPP
-            client = new HttpClient(SocketsHttpHandler, disposeHandler: false);
-#else
-            client = new HttpClient();
-#endif
+            var client = _httpClientFactory();
+
             client.BaseAddress = _honeycombApiUrl;
 
             return client;
@@ -138,10 +134,7 @@ namespace Honeycomb.Serilog.Sink
 
         private void ReleaseUnmanagedResources()
         {
-#if NETCORE
-            _socketsHttpHandler?.Dispose();
-            _socketsHttpHandler = null;
-#endif
+            _messageHandler?.Value.Dispose();
         }
 
         public void Dispose()
