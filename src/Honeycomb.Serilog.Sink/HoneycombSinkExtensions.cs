@@ -1,5 +1,6 @@
 using System;
 using Honeycomb.Serilog.Sink.Enricher;
+using Honeycomb.Serilog.Sink.Sink;
 using Serilog;
 using Serilog.Configuration;
 using Serilog.Sinks.PeriodicBatching;

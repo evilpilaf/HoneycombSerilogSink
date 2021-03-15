@@ -2,6 +2,8 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 
+using Honeycomb.Serilog.Sink.Sink;
+
 using Serilog.Events;
 
 namespace Honeycomb.Serilog.Sink.Tests

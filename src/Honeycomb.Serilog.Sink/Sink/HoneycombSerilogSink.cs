@@ -12,7 +12,7 @@ using Serilog.Debugging;
 using Serilog.Events;
 using Serilog.Sinks.PeriodicBatching;
 
-namespace Honeycomb.Serilog.Sink
+namespace Honeycomb.Serilog.Sink.Sink
 {
     internal class HoneycombSerilogSink : IBatchedLogEventSink, IDisposable
     {
