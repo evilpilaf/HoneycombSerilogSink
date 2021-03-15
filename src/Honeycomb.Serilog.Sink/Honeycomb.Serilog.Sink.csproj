@@ -1,8 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
-    <TargetFrameworks Condition="$(IsWindows) == true">$TargetFrameworks;net461</TargetFrameworks>
     <Title>Honeycomb Serilog sink</Title>
     <PackageTags>Honeycomb Serilog Sink Observability Logging Monitoring</PackageTags>
     <RepositoryUrl>https://github.com/evilpilaf/HoneycombSerilogSink/</RepositoryUrl>
