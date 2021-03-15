@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net;
 using System.Net.Http;
 
@@ -28,13 +28,12 @@ namespace Honeycomb.Serilog.Sink.Tests.Builders
     {
         private readonly HttpMessageHandlerStub _handlerStub;
 
-        public HttpRequestMessage RequestSubmitted => _handlerStub.RequestMessage;
-        public string RequestContent => _handlerStub.RequestContent;
+        public HttpRequestMessage? RequestSubmitted => _handlerStub.GetRequestMessage();
+        public string? RequestContent => _handlerStub.GetRequestContent();
 
         public HttpClientStub(HttpMessageHandlerStub httpMessageHandler)
             : base(httpMessageHandler)
         {
-            BaseAddress = new Uri("http://dummyUri");
             _handlerStub = httpMessageHandler;
         }
     }
