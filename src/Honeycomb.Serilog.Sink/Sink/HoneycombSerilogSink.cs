@@ -23,6 +23,8 @@ namespace Honeycomb.Serilog.Sink.Sink
 #endif
         );
 
+        private static readonly RawJsonFormatter _rawJsonFormatter = new RawJsonFormatter();
+
         private readonly Func<HttpClient> _httpClientFactory
             = () => new HttpClient(_messageHandler.Value, disposeHandler: false);
 
@@ -111,7 +113,7 @@ namespace Honeycomb.Serilog.Sink.Sink
                 e.AddPropertyIfAbsent(new LogEventProperty("library.version", new ScalarValue(LibraryVersion)));
                 payload.Write(eventSeparator);
                 eventSeparator = ",";
-                RawJsonFormatter.FormatContent(e, payload);
+                _rawJsonFormatter.Format(e, payload);
             }
             payload.Write("]");
         }

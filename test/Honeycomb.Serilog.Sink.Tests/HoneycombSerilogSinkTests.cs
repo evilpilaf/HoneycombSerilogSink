@@ -117,6 +117,32 @@ namespace Honeycomb.Serilog.Sink.Tests
         }
 
         [Fact]
+        public async Task Emit_AlwaysSetsMetaAnnotationType_As_SpanEvent()
+        {
+            const string dataset = nameof(dataset);
+            const string apiKey = nameof(apiKey);
+
+            HttpClientStub clientStub = A.HttpClient();
+
+            var sut = CreateSut(dataset, apiKey, clientStub);
+
+            await sut.EmitTestable(new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null,
+                new MessageTemplate("", Enumerable.Empty<MessageTemplateToken>()),
+                Enumerable.Empty<LogEventProperty>()));
+
+            var requestContent = clientStub.RequestContent!;
+            using (var document = JsonDocument.Parse(requestContent))
+            using (new AssertionScope())
+            {
+                JsonElement sentEvent = document.RootElement.EnumerateArray().Single();
+                JsonElement data = sentEvent.GetProperty("data");
+
+                data.GetProperty("meta.annotation_type").Should().NotBeNull();
+                data.GetProperty("meta.annotation_type").GetString().Should().Be("span_event");
+            }
+        }
+
+        [Fact]
         public async Task Emit_GivenNoExceptionIsLogged_SerializesLogMessageAsJson_HasNoExceptionInMessageAsync()
         {
             const string dataset = nameof(dataset);
