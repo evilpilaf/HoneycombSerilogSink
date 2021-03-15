@@ -13,11 +13,6 @@ namespace Honeycomb.Serilog.Sink.Formatters
     internal class RawJsonFormatter : ITextFormatter
     {
         private static readonly JsonValueFormatter ValueFormatter = new();
-        private static readonly IReadOnlyDictionary<string, string> PropertyTransforms = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        {
-            {"SpanId", "trace.parent_id"},
-            {"TraceId", "trace.trace_id"}
-        };
 
         public void Format(LogEvent logEvent, TextWriter output)
         {
@@ -76,19 +71,10 @@ namespace Honeycomb.Serilog.Sink.Formatters
                 }
                 output.Write(precedingDelimiter);
 
-                JsonValueFormatter.WriteQuotedJsonString(GetPropertyName(property.Key), output);
+                JsonValueFormatter.WriteQuotedJsonString(property.Key, output);
                 output.Write(':');
                 ValueFormatter.Format(property.Value, output);
             }
-        }
-
-        private static string GetPropertyName(string propertyName)
-        {
-            if (PropertyTransforms.TryGetValue(propertyName, out string transformedName))
-            {
-                return transformedName;
-            }
-            return propertyName;
         }
     }
 }
