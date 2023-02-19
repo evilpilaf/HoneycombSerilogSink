@@ -78,8 +78,8 @@ namespace Honeycomb.Serilog.Sink.Tests
             await sut.EmitTestable(new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate("", Enumerable.Empty<MessageTemplateToken>()), Enumerable.Empty<LogEventProperty>()));
 
             clientStub.RequestSubmitted.Should().NotBeNull();
-            clientStub.RequestSubmitted!.RequestUri.Host.Should().Be("api.honeycomb.io");
-            clientStub.RequestSubmitted!.RequestUri.Scheme.Should().Be("https");
+            clientStub.RequestSubmitted!.RequestUri!.Host.Should().Be("api.honeycomb.io");
+            clientStub.RequestSubmitted!.RequestUri!.Scheme.Should().Be("https");
         }
 
         [Fact]
@@ -96,8 +96,8 @@ namespace Honeycomb.Serilog.Sink.Tests
             await sut.EmitTestable(new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate("", Enumerable.Empty<MessageTemplateToken>()), Enumerable.Empty<LogEventProperty>()));
 
             clientStub.RequestSubmitted.Should().NotBeNull();
-            clientStub.RequestSubmitted!.RequestUri.Scheme.Should().Be(customUri.Scheme);
-            clientStub.RequestSubmitted!.RequestUri.Host.Should().Be(customUri.Host);
+            clientStub.RequestSubmitted!.RequestUri!.Scheme.Should().Be(customUri.Scheme);
+            clientStub.RequestSubmitted!.RequestUri!.Host.Should().Be(customUri.Host);
         }
 
         [Fact]
@@ -113,7 +113,7 @@ namespace Honeycomb.Serilog.Sink.Tests
             await sut.EmitTestable(new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate("", Enumerable.Empty<MessageTemplateToken>()), Enumerable.Empty<LogEventProperty>()));
 
             clientStub.RequestSubmitted.Should().NotBeNull();
-            clientStub.RequestSubmitted!.RequestUri.ToString().Should().EndWith(dataset);
+            clientStub.RequestSubmitted!.RequestUri!.ToString().Should().EndWith(dataset);
         }
 
         [Fact]

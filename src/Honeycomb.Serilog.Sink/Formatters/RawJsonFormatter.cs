@@ -64,7 +64,7 @@ namespace Honeycomb.Serilog.Sink.Formatters
                 // Skip properties with empty values
                 if (property.Value is ScalarValue v)
                 {
-                    if (v.Value == null || v.Value.ToString().Equals(""))
+                    if (v.Value == null || v.Value.ToString()?.Equals("") is true)
                     {
                         continue;
                     }
