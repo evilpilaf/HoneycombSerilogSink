@@ -212,7 +212,7 @@ namespace Honeycomb.Serilog.Sink.Tests
 
                 data.GetProperty("level").GetString().Should().Be(level.ToString());
                 data.GetProperty("exception.type").GetString().Should().Be(ex.GetType().ToString());
-                data.GetProperty("exception.message").GetString().Should().Be(ex.ToStringDemystified());
+                data.GetProperty("exception.message").GetString().Should().Be(ex.ToString());
                 data.GetProperty("exception.stacktrace").GetString().Should().Be(ex.StackTrace);
 
             }
