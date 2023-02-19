@@ -15,15 +15,9 @@ namespace Honeycomb.Serilog.Sink.Sink
 {
     internal class HoneycombSerilogSink : IBatchedLogEventSink, IDisposable
     {
-        private static readonly Lazy<HttpMessageHandler> _messageHandler = new(() =>
-#if NETCOREAPP2_0_OR_GREATER
-        new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(30) }
-#else
-        new HttpClientHandler()
-#endif
-        );
+        private static readonly Lazy<HttpMessageHandler> _messageHandler = new(() => new HttpClientHandler());
 
-        private static readonly RawJsonFormatter _rawJsonFormatter = new RawJsonFormatter();
+        private static readonly RawJsonFormatter _rawJsonFormatter = new();
 
         private readonly Func<HttpClient> _httpClientFactory
             = () => new HttpClient(_messageHandler.Value, disposeHandler: false);

@@ -2,8 +2,8 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
   <PropertyGroup Label="Build">
-    <TargetFrameworks>netcoreapp2.1;netcoreapp3.0;netcoreapp3.1;net5.0</TargetFrameworks>
-    <TargetFrameworks Condition="$(IsWindows) == true">$(TargetFrameworks);net461;net462;net47;net471;net472;net48;</TargetFrameworks>
+    <TargetFrameworks>net7.0;net6.0;net5.0;</TargetFrameworks>
+    <TargetFrameworks Condition="$(IsWindows) == true">$(TargetFrameworks);net462;net472;net48</TargetFrameworks>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
