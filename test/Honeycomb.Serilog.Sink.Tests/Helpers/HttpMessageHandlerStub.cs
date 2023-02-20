@@ -14,7 +14,7 @@ namespace Honeycomb.Serilog.Sink.Tests.Helpers
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             _requestMessage = request;
-            _requestContent = await request.Content.ReadAsStringAsync();
+            _requestContent = await request.Content!.ReadAsStringAsync();
             return new HttpResponseMessage(_statusCodeToReturn)
             {
                 Content = new StringContent("")

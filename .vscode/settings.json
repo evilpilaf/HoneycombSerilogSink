@@ -1,0 +1,6 @@
+{
+  "files.associations": {
+    "**/ci/**/*.yml": "azure-pipelines",
+    "**/ci/**/*.yaml": "azure-pipelines"
+  }
+}
