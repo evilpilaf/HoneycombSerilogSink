@@ -8,12 +8,6 @@ steps:
     inputs:
       version: 6.x
       includePreviewVersions: false
-
-  
-  - task: UseDotNet@2
-    inputs:
-      version: 5.x
-      includePreviewVersions: true
       
   - task: DotNetCoreCLI@2
     displayName: "Restore packages"
